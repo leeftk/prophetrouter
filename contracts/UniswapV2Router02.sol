@@ -266,40 +266,42 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         _swap(amounts, path, to);
     }
 
-    funciton ProphetSmartSell(amountOut, amountInMax, tokenAddress, _fee){
 
-            /// @audit - amounts[amounts.length - 1] is this the amount of ETH we are getting back?
-        uint256 feeAmount = amountOut * _fee / 10_000;
-        require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
-        uint256 outputSwappedEthAfterFee = amountOut + feeAmount;
-        swapExactTokensForETH(amountOut, amountInMax, path, msg.sender, deadline, feeAmount);
-        
 
-    }
-
-    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline, uint256 _fee)
+    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] memory path, address to, uint deadline, uint256 _fee)
         external
         virtual
         override
         ensure(deadline)
         returns (uint[] memory amounts)
     {
+        
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
     
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
 
-        totalFeeCollected += feeAmount;
+        totalFeeCollected += _fee;
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
         );
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         
-        uint outputSwappedEth = amounts[amounts.length - 1] - _fee;
+        uint outputSwappedEthAfterFee = amounts[amounts.length - 1] - _fee;
         
         TransferHelper.safeTransferETH(msg.sender, outputSwappedEthAfterFee );
 
+
+    }
+function ProphetSmartSell(uint amountOut, uint amountInMax,uint256 deadline, address[] memory path, address tokenAddress, uint _fee) public {
+
+            /// @audit - amounts[amounts.length - 1] is this the amount of ETH we are getting back?
+        uint256 feeAmount = amountOut * _fee / 10_000;
+        require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
+        uint256 outputSwappedEthAfterFee = amountOut + feeAmount;
+        swapTokensForExactETH(amountOut, amountInMax, path, msg.sender, deadline, feeAmount);
+        
 
     }
     function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
@@ -485,41 +487,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         return UniswapV2Library.getAmountsIn(factory, amountOut, path);
     }
 
-    function ProphetSmartSell(uint256 amountOut, uint256 amountInMax, address tokenAddress, uint256 _fee) external {
-        // Custom error checks
-        if(amountOut == 0) revert InvalidAmount();
-        if(tokenAddress == address(0)) revert InvalidToken();
-        
-        // Swap logic
-        address[] memory path = getPathForTokenToToken(false, tokenAddress);
-        uint256[] memory amountsOut = IUniswapV2Router02(UNISWAP_V2_ROUTER).getAmountsIn(amountOut, path);
-        if(amountsOut[1] < amountOut) revert InvalidOutputAmount();
-
-        uint256 deadline = block.timestamp + 3600;
-        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), amountsOut[0]);
-        IERC20(tokenAddress).forceApprove(address(UNISWAP_V2_ROUTER), amountInMax);
-
-        uint256 ethBalanceBeforeSwap = address(this).balance;
-        swapTokensForExactETH(
-            amountOut, amountInMax, path, address(this), deadline
-        );
-
-        // Calculate and process fee
-        uint256 ethBalanceAfterSwap = address(this).balance;
-        uint256 outputSwappedEth = ethBalanceAfterSwap - ethBalanceBeforeSwap;
-        uint256 feeAmount = outputSwappedEth * _fee / 10_000;
-        if (feeAmount == 0) revert InvalidAmount();
-
-        totalFeeCollected += feeAmount;
-
-        // Finalize swap and transfer
-        uint256 outputSwappedEthAfterFee = outputSwappedEth - feeAmount;
-        if (outputSwappedEthAfterFee + feeAmount != amountOut) revert InvalidAmount();
-        (bool success,) = msg.sender.call{value: outputSwappedEthAfterFee}("");
-        if(!success) revert TransferFailed();
-
-        emit ProphetFee(msg.sender, feeAmount);
-    }
 
     // /// @notice Allows the contract owner to withdraw tokens from the contract
     // /// @param _token The token address to withdraw
