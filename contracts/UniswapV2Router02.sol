@@ -264,14 +264,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
     }
-<<<<<<< HEAD
-
-
-
-    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] memory path, address to, uint deadline, uint256 _fee)
-=======
     function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
->>>>>>> parent of e15f705 (modified function)
         external
         virtual
         override
@@ -282,26 +275,12 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
-<<<<<<< HEAD
-
-        totalFeeCollected += _fee;
-=======
->>>>>>> parent of e15f705 (modified function)
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
         );
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
-<<<<<<< HEAD
-        
-        uint outputSwappedEthAfterFee = amounts[amounts.length - 1] - _fee;
-        
-        TransferHelper.safeTransferETH(msg.sender, outputSwappedEthAfterFee );
-
-
-=======
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
->>>>>>> parent of e15f705 (modified function)
     }
 function ProphetSmartSell(uint amountOut, uint amountInMax,uint256 deadline, address[] memory path, address tokenAddress, uint _fee) public {
 
