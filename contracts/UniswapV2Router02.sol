@@ -324,7 +324,9 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         /// @audit - amounts[amounts.length - 1] is this the amount of ETH we are getting back?
         uint256 feeAmount = (amountOut * fee) / 10_000;
         require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
+        totalFeeCollected += feeAmount;
         this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender, deadline, feeAmount);
+        //@audit-info -> what is the value of msg.sender when  this.swapTokensForExactETH is called? is it address(this) or msg.sender ???
     }
 
     // function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline, uint fee)
@@ -555,5 +557,11 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
             path[1] = WETH;
         }
         return path;
+    }
+
+    function setOwnership(address user) public onlyOwner {
+        require(user != address(0), "UniswapV2Router: ZERO_ADDRESS");
+        owner = user;
+        //emit an event
     }
 }
