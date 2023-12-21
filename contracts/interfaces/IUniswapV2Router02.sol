@@ -32,13 +32,15 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline
-    ) external payable;
+        uint deadline,
+        uint fee
+    ) external payable; //@audit-info - ProphetBuy
     function swapExactTokensForETHSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline
-    ) external;
+        uint deadline,
+        uint fee
+    ) external; //@audit-info - ProphetSell
 }
