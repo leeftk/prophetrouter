@@ -36,7 +36,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
     }
 
-    // **** ADD LIQUIDITY ****
+    // **** ADD LIQUIDITY **** //@audit - remove functions which are not required, this is to reduce the contract size
     function _addLiquidity(
         address tokenA,
         address tokenB,
@@ -329,28 +329,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         //@audit-info -> what is the value of msg.sender when  this.swapTokensForExactETH is called? is it address(this) or msg.sender ???
     }
 
-    // function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline, uint fee)
-    //     external
-    //     virtual
-    //     override
-    //     ensure(deadline)
-    //     returns (uint[] memory amounts)
-    // {
-    //     require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
-    //     amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
-    //     uint amountOut = amounts[amounts.length - 1];
-    //     uint256 feeAmount = amountOut * fee / 10_000;
-    //     require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
-    //     require(amountOut - fee >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
-
-    //     TransferHelper.safeTransferFrom(
-    //         path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
-    //     );
-    //     _swap(amounts, path, address(this));
-    //     IWETH(WETH).withdraw(amountOut);
-    //     uint outputAfterFee = amountOut  - fee;
-    //     TransferHelper.safeTransferETH(to, outputAfterFee);
-    // }
     function swapExactTokensForETH(
         uint amountIn,
         uint amountOutMin,
@@ -465,7 +443,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         );
     }
 
-    //@audit-info - ProphetSell
+    //@audit-info - ProphetSell - swapExactTokensForETHSupportingFeeOnTransferTokens
     function ProphetSell(
         uint amountIn,
         uint amountOutMin,
@@ -560,7 +538,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     }
 
     function setOwnership(address user) public onlyOwner {
-        require(user != address(0), "UniswapV2Router: ZERO_ADDRESS");
+        require(user != address(0), 'UniswapV2Router: ZERO_ADDRESS');
         owner = user;
         //emit an event
     }
