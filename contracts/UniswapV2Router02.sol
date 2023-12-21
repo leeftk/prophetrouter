@@ -308,12 +308,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(
-            path[0],
-            to,
-            UniswapV2Library.pairFor(factory, path[0], path[1]),
-            amounts[0]
-        );
+        TransferHelper.safeTransferFrom(path[0], to, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]);
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1] - feeAmount);
@@ -329,7 +324,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         /// @audit - amounts[amounts.length - 1] is this the amount of ETH we are getting back?
         uint256 feeAmount = (amountOut * fee) / 10_000;
         require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
-        this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender,deadline, feeAmount);
+        this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender, deadline, feeAmount);
     }
 
     // function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline, uint fee)
@@ -546,7 +541,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         TransferHelper.safeTransferETH(owner, address(this).balance);
     }
 
-       /// @notice Helper function to get the swap path for token to token or ETH to token swaps
+    /// @notice Helper function to get the swap path for token to token or ETH to token swaps
     /// @param swapETH Indicates whether the swap involves ETH
     /// @param _tokenOut The address of the output token
     /// @return path The swap path as an array of addresses
@@ -561,5 +556,4 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         }
         return path;
     }
-
 }
