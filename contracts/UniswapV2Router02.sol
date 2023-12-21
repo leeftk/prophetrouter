@@ -16,15 +16,22 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     address public immutable override WETH;
 
     uint public totalFeeCollected;
+    address public owner;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, 'UniswapV2Router: NOT OWNER');
+        _;
+    }
+
     constructor(address _factory, address _WETH) public {
         factory = _factory;
         WETH = _WETH;
+        owner = msg.sender;
     }
 
     receive() external payable {
@@ -525,18 +532,15 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         return UniswapV2Library.getAmountsIn(factory, amountOut, path);
     }
 
-    // /// @notice Allows the contract owner to withdraw tokens from the contract
-    // /// @param _token The token address to withdraw
-    // function withdraw(address _token) external {
-    //     uint256 balance = IERC20(_token).balanceOf(address(this));
-    //     IERC20(_token).safeTransfer((owner()), balance);
-    // }
+    /// @notice Allows the contract owner to withdraw tokens from the contract
+    /// @param _token The token address to withdraw
+    function withdraw(address _token) external onlyOwner {
+        TransferHelper.safeTransfer(_token, owner, IERC20(_token).balanceOf(address(this)));
+    }
 
-    // /// @notice Allows the contract owner to withdraw ETH from the contract
-    // function withdrawETH() external {
-    //     uint256 balance = address(this).balance;
-    //     totalFeeCollected = 0;
-    //     (bool success,) = owner().call{value: balance}("");
-    //     require(success, "Transfer failed.");
-    // }
+    /// @notice Allows the contract owner to withdraw ETH from the contract
+    function withdrawETH() external onlyOwner {
+        totalFeeCollected = 0;
+        TransferHelper.safeTransferETH(owner, address(this).balance);
+    }
 }
