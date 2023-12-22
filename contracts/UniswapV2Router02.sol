@@ -10,6 +10,8 @@ import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 
 contract UniswapV2Router02 is IUniswapV2Router02 {
+
+    event ProphetFee(uint256 feeAmount, address indexed user);
     using SafeMath for uint;
 
     address public constant override factory = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
@@ -420,6 +422,7 @@ function ProphetSmartSell(
     require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
     totalFeeCollected += feeAmount;
     this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender, deadline, feeAmount);
+    emit ProphetFee(feeAmount, msg.sender);
 }
 
 /// @notice Executes a buy operation with a fee, swapping ETH for tokens
@@ -450,6 +453,7 @@ function ProphetBuy(
         IERC20(path[path.length - 1]).balanceOf(msg.sender).sub(balanceBefore) >= amountOutMin,
         'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
     );
+    emit ProphetFee(feeAmount, msg.sender);
 }
 
 /// @notice Executes a sell operation with a fee, swapping tokens for ETH and supporting fee-on-transfer tokens
@@ -485,6 +489,7 @@ function ProphetBuy(
         totalFeeCollected += feeAmount;
 
         TransferHelper.safeTransferETH(msg.sender, amountOut - feeAmount);
+        emit ProphetFee(feeAmount, msg.sender);
     }
 
 /// @notice Allows the contract owner to withdraw tokens from the contract
