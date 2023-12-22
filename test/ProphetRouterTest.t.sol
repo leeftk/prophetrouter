@@ -7,6 +7,7 @@ import 'contracts/UniswapV2Router02.sol';
 import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
 
 contract ProphetRouterTest is Test {
+    event ProphetFee(uint256 amount, address indexed to);
     UniswapV2Router02 public prophetRouter;
 
     //User Addresses
@@ -46,6 +47,13 @@ contract ProphetRouterTest is Test {
         prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, block.timestamp, 1000);
         uint256 balanceOfUsdc = IERC20(usdcToken).balanceOf(alice);
         assertFalse(balanceOfUsdc == 0);
+
+        //## PAXG token
+        vm.prank(bob);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, paxgToken, block.timestamp, 1000);
+        uint256 balanceOfPaxg = IERC20(paxgToken).balanceOf(bob);
+        assertFalse(balanceOfPaxg == 0);
+
 
         //## USDT token
         vm.prank(bob);
@@ -342,6 +350,36 @@ contract ProphetRouterTest is Test {
         prophetRouter.withdrawETH();
         assertEq(address(owner).balance, totalFee);
     }
+    function test_Withdrawal_sanityChecks() public {
+        vm.prank(bob);
+        vm.expectRevert('UniswapV2Router: NOT OWNER');
+        prophetRouter.withdrawETH();
+    }
+
+
+ function testMyFunctionEmitsEvent() public {
+    vm.prank(alice);
+    vm.expectEmit(false, true, false, false);
+
+    emit ProphetFee(1000, alice);
+
+    prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, block.timestamp, 1000);
+    uint256 balanceOfUsdc = IERC20(usdcToken).balanceOf(alice);
+    assertFalse(balanceOfUsdc == 0);        
+}
+
+//  function testMyFunctionEmitsEventProphetSell() public {
+//         vm.startPrank(wbtcWhale);
+       
+//         ethBalanceBefore = address(wbtcWhale).balance;
+//         IERC20(wbtcToken).approve(address(prophetRouter), 6 * 10 ** 8);
+//         vm.expectEmit(false, true, false, false);
+//         emit ProphetFee(1000, alice); 
+//         prophetRouter.ProphetSell(6 * 10 ** 8, 100 ether, wbtcToken, block.timestamp, 1000);
+//         assertGt(address(wbtcWhale).balance, ethBalanceBefore + (100 ether * 0.9));
+//         vm.stopPrank();    
+// }
+
 
     // function test_WithFeeOnTransfer() public {
     //     vm.prank(alice);

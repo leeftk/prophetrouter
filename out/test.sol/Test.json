@@ -1310,17 +1310,17 @@
   },
   "ast": {
     "absolutePath": "lib/forge-std/src/Test.sol",
-    "id": 15400,
+    "id": 15424,
     "exportedSymbols": {
       "Test": [
-        15399
+        15423
       ]
     },
     "nodeType": "SourceUnit",
     "src": "32:1126:19",
     "nodes": [
       {
-        "id": 15350,
+        "id": 15374,
         "nodeType": "PragmaDirective",
         "src": "32:31:19",
         "nodes": [],
@@ -1335,7 +1335,7 @@
         ]
       },
       {
-        "id": 15351,
+        "id": 15375,
         "nodeType": "PragmaDirective",
         "src": "65:33:19",
         "nodes": [],
@@ -1345,19 +1345,19 @@
         ]
       },
       {
-        "id": 15353,
+        "id": 15377,
         "nodeType": "ImportDirective",
         "src": "160:38:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/console.sol",
         "file": "./console.sol",
-        "scope": 15400,
-        "sourceUnit": 25318,
+        "scope": 15424,
+        "sourceUnit": 25342,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15352,
+              "id": 15376,
               "name": "console",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1374,19 +1374,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15355,
+        "id": 15379,
         "nodeType": "ImportDirective",
         "src": "199:40:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/console2.sol",
         "file": "./console2.sol",
-        "scope": 15400,
-        "sourceUnit": 33443,
+        "scope": 15424,
+        "sourceUnit": 33467,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15354,
+              "id": 15378,
               "name": "console2",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1403,19 +1403,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15357,
+        "id": 15381,
         "nodeType": "ImportDirective",
         "src": "240:46:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/safeconsole.sol",
         "file": "./safeconsole.sol",
-        "scope": 15400,
-        "sourceUnit": 47770,
+        "scope": 15424,
+        "sourceUnit": 47794,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15356,
+              "id": 15380,
               "name": "safeconsole",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1432,19 +1432,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15359,
+        "id": 15383,
         "nodeType": "ImportDirective",
         "src": "287:50:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdAssertions.sol",
         "file": "./StdAssertions.sol",
-        "scope": 15400,
-        "sourceUnit": 7146,
+        "scope": 15424,
+        "sourceUnit": 7170,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15358,
+              "id": 15382,
               "name": "StdAssertions",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1461,19 +1461,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15361,
+        "id": 15385,
         "nodeType": "ImportDirective",
         "src": "338:42:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdChains.sol",
         "file": "./StdChains.sol",
-        "scope": 15400,
-        "sourceUnit": 7901,
+        "scope": 15424,
+        "sourceUnit": 7925,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15360,
+              "id": 15384,
               "name": "StdChains",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1490,19 +1490,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15363,
+        "id": 15387,
         "nodeType": "ImportDirective",
         "src": "381:42:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdCheats.sol",
         "file": "./StdCheats.sol",
-        "scope": 15400,
-        "sourceUnit": 10693,
+        "scope": 15424,
+        "sourceUnit": 10717,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15362,
+              "id": 15386,
               "name": "StdCheats",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1519,19 +1519,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15365,
+        "id": 15389,
         "nodeType": "ImportDirective",
         "src": "424:40:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdError.sol",
         "file": "./StdError.sol",
-        "scope": 15400,
-        "sourceUnit": 10759,
+        "scope": 15424,
+        "sourceUnit": 10783,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15364,
+              "id": 15388,
               "name": "stdError",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1548,19 +1548,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15367,
+        "id": 15391,
         "nodeType": "ImportDirective",
         "src": "465:48:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdInvariant.sol",
         "file": "./StdInvariant.sol",
-        "scope": 15400,
-        "sourceUnit": 11009,
+        "scope": 15424,
+        "sourceUnit": 11033,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15366,
+              "id": 15390,
               "name": "StdInvariant",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1577,19 +1577,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15369,
+        "id": 15393,
         "nodeType": "ImportDirective",
         "src": "514:38:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdJson.sol",
         "file": "./StdJson.sol",
-        "scope": 15400,
-        "sourceUnit": 11600,
+        "scope": 15424,
+        "sourceUnit": 11624,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15368,
+              "id": 15392,
               "name": "stdJson",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1606,19 +1606,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15371,
+        "id": 15395,
         "nodeType": "ImportDirective",
         "src": "553:38:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdMath.sol",
         "file": "./StdMath.sol",
-        "scope": 15400,
-        "sourceUnit": 11742,
+        "scope": 15424,
+        "sourceUnit": 11766,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15370,
+              "id": 15394,
               "name": "stdMath",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1635,19 +1635,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15374,
+        "id": 15398,
         "nodeType": "ImportDirective",
         "src": "592:56:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdStorage.sol",
         "file": "./StdStorage.sol",
-        "scope": 15400,
-        "sourceUnit": 13361,
+        "scope": 15424,
+        "sourceUnit": 13385,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15372,
+              "id": 15396,
               "name": "StdStorage",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1663,7 +1663,7 @@
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15373,
+              "id": 15397,
               "name": "stdStorage",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1680,19 +1680,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15376,
+        "id": 15400,
         "nodeType": "ImportDirective",
         "src": "649:40:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdStyle.sol",
         "file": "./StdStyle.sol",
-        "scope": 15400,
-        "sourceUnit": 14571,
+        "scope": 15424,
+        "sourceUnit": 14595,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15375,
+              "id": 15399,
               "name": "StdStyle",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1709,19 +1709,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15378,
+        "id": 15402,
         "nodeType": "ImportDirective",
         "src": "690:40:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/StdUtils.sol",
         "file": "./StdUtils.sol",
-        "scope": 15400,
-        "sourceUnit": 15349,
+        "scope": 15424,
+        "sourceUnit": 15373,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15377,
+              "id": 15401,
               "name": "StdUtils",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1738,19 +1738,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15380,
+        "id": 15404,
         "nodeType": "ImportDirective",
         "src": "731:28:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/Vm.sol",
         "file": "./Vm.sol",
-        "scope": 15400,
-        "sourceUnit": 17254,
+        "scope": 15424,
+        "sourceUnit": 17278,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15379,
+              "id": 15403,
               "name": "Vm",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1767,19 +1767,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15382,
+        "id": 15406,
         "nodeType": "ImportDirective",
         "src": "781:36:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/Base.sol",
         "file": "./Base.sol",
-        "scope": 15400,
-        "sourceUnit": 5728,
+        "scope": 15424,
+        "sourceUnit": 5752,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15381,
+              "id": 15405,
               "name": "TestBase",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1796,19 +1796,19 @@
         "unitAlias": ""
       },
       {
-        "id": 15384,
+        "id": 15408,
         "nodeType": "ImportDirective",
         "src": "818:40:19",
         "nodes": [],
         "absolutePath": "lib/forge-std/lib/ds-test/src/test.sol",
         "file": "ds-test/test.sol",
-        "scope": 15400,
-        "sourceUnit": 5656,
+        "scope": 15424,
+        "sourceUnit": 5680,
         "symbolAliases": [
           {
             "foreign": {
               "argumentTypes": null,
-              "id": 15383,
+              "id": 15407,
               "name": "DSTest",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
@@ -1825,7 +1825,7 @@
         "unitAlias": ""
       },
       {
-        "id": 15399,
+        "id": 15423,
         "nodeType": "ContractDefinition",
         "src": "875:282:19",
         "nodes": [],
@@ -1835,17 +1835,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 15385,
+              "id": 15409,
               "name": "TestBase",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 5719,
+              "referencedDeclaration": 5743,
               "src": "901:8:19",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_TestBase_$5719",
+                "typeIdentifier": "t_contract$_TestBase_$5743",
                 "typeString": "contract TestBase"
               }
             },
-            "id": 15386,
+            "id": 15410,
             "nodeType": "InheritanceSpecifier",
             "src": "901:8:19"
           },
@@ -1853,17 +1853,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 15387,
+              "id": 15411,
               "name": "DSTest",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 5655,
+              "referencedDeclaration": 5679,
               "src": "911:6:19",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_DSTest_$5655",
+                "typeIdentifier": "t_contract$_DSTest_$5679",
                 "typeString": "contract DSTest"
               }
             },
-            "id": 15388,
+            "id": 15412,
             "nodeType": "InheritanceSpecifier",
             "src": "911:6:19"
           },
@@ -1871,17 +1871,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 15389,
+              "id": 15413,
               "name": "StdAssertions",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 7145,
+              "referencedDeclaration": 7169,
               "src": "919:13:19",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_StdAssertions_$7145",
+                "typeIdentifier": "t_contract$_StdAssertions_$7169",
                 "typeString": "contract StdAssertions"
               }
             },
-            "id": 15390,
+            "id": 15414,
             "nodeType": "InheritanceSpecifier",
             "src": "919:13:19"
           },
@@ -1889,17 +1889,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 15391,
+              "id": 15415,
               "name": "StdChains",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 7900,
+              "referencedDeclaration": 7924,
               "src": "934:9:19",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_StdChains_$7900",
+                "typeIdentifier": "t_contract$_StdChains_$7924",
                 "typeString": "contract StdChains"
               }
             },
-            "id": 15392,
+            "id": 15416,
             "nodeType": "InheritanceSpecifier",
             "src": "934:9:19"
           },
@@ -1907,17 +1907,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 15393,
+              "id": 15417,
               "name": "StdCheats",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 10692,
+              "referencedDeclaration": 10716,
               "src": "945:9:19",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_StdCheats_$10692",
+                "typeIdentifier": "t_contract$_StdCheats_$10716",
                 "typeString": "contract StdCheats"
               }
             },
-            "id": 15394,
+            "id": 15418,
             "nodeType": "InheritanceSpecifier",
             "src": "945:9:19"
           },
@@ -1925,17 +1925,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 15395,
+              "id": 15419,
               "name": "StdInvariant",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11008,
+              "referencedDeclaration": 11032,
               "src": "956:12:19",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_StdInvariant_$11008",
+                "typeIdentifier": "t_contract$_StdInvariant_$11032",
                 "typeString": "contract StdInvariant"
               }
             },
-            "id": 15396,
+            "id": 15420,
             "nodeType": "InheritanceSpecifier",
             "src": "956:12:19"
           },
@@ -1943,49 +1943,49 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 15397,
+              "id": 15421,
               "name": "StdUtils",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 15348,
+              "referencedDeclaration": 15372,
               "src": "970:8:19",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_StdUtils_$15348",
+                "typeIdentifier": "t_contract$_StdUtils_$15372",
                 "typeString": "contract StdUtils"
               }
             },
-            "id": 15398,
+            "id": 15422,
             "nodeType": "InheritanceSpecifier",
             "src": "970:8:19"
           }
         ],
         "contractDependencies": [
-          5655,
-          5716,
-          5719,
-          7145,
-          7900,
-          9902,
-          10692,
-          11008,
-          15348
+          5679,
+          5740,
+          5743,
+          7169,
+          7924,
+          9926,
+          10716,
+          11032,
+          15372
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          15399,
-          15348,
-          11008,
-          10692,
-          9902,
-          7900,
-          7145,
-          5655,
-          5719,
-          5716
+          15423,
+          15372,
+          11032,
+          10716,
+          9926,
+          7924,
+          7169,
+          5679,
+          5743,
+          5740
         ],
         "name": "Test",
-        "scope": 15400
+        "scope": 15424
       }
     ]
   },
