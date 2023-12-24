@@ -10,8 +10,9 @@ import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 
 contract UniswapV2Router02 is IUniswapV2Router02 {
-
     event ProphetFee(uint256 feeAmount, address indexed user);
+    event OwnershipChanged(address indexed newOwner);
+
     using SafeMath for uint;
 
     address public constant override factory = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
@@ -316,7 +317,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1] - feeAmount);
     }
 
-
     function swapExactTokensForETH(
         uint amountIn,
         uint amountOutMin,
@@ -403,67 +403,65 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         );
     }
 
+    /// @notice Executes a smart sell operation with a fee, swapping tokens for ETH
+    /// @dev This function includes a fee mechanism and uses internal swap functions
+    /// @param amountOut The amount of ETH to receive from the swap
+    /// @param amountInMax The maximum amount of input tokens to sell
+    /// @param tokenAddress The address of the token to sell
+    /// @param deadline The time by which the transaction must be confirmed
+    /// @param fee The fee percentage for the operation
+    function ProphetSmartSell(
+        uint amountOut,
+        uint amountInMax,
+        address tokenAddress,
+        uint256 deadline,
+        uint fee
+    ) public {
+        uint256 feeAmount = (amountOut * fee) / 10_000;
+        require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
+        totalFeeCollected += feeAmount;
+        this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender, deadline, feeAmount);
+        emit ProphetFee(feeAmount, msg.sender);
+    }
 
-/// @notice Executes a smart sell operation with a fee, swapping tokens for ETH
-/// @dev This function includes a fee mechanism and uses internal swap functions
-/// @param amountOut The amount of ETH to receive from the swap
-/// @param amountInMax The maximum amount of input tokens to sell
-/// @param tokenAddress The address of the token to sell
-/// @param deadline The time by which the transaction must be confirmed
-/// @param fee The fee percentage for the operation
-function ProphetSmartSell(
-    uint amountOut,
-    uint amountInMax,
-    address tokenAddress,
-    uint256 deadline,
-    uint fee
-) public {
-    uint256 feeAmount = (amountOut * fee) / 10_000;
-    require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
-    totalFeeCollected += feeAmount;
-    this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender, deadline, feeAmount);
-    emit ProphetFee(feeAmount, msg.sender);
-}
+    /// @notice Executes a buy operation with a fee, swapping ETH for tokens
+    /// @dev This function includes a fee mechanism and supports fee-on-transfer tokens
+    /// @param amountOutMin The minimum amount of output tokens to receive
+    /// @param tokenAddress The address of the output token
+    /// @param deadline The time by which the transaction must be confirmed
+    /// @param fee The fee percentage for the operation
+    function ProphetBuy(
+        uint amountOutMin,
+        address tokenAddress,
+        uint deadline,
+        uint fee
+    ) external payable virtual override ensure(deadline) {
+        address[] memory path = getPathForTokenToToken(true, tokenAddress);
+        require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
+        uint256 feeAmount = (msg.value * fee) / 10_000;
+        require(feeAmount > 0, 'UniswapV2Router: INVALID_FEE_AMOUNT');
+        totalFeeCollected += feeAmount;
 
-/// @notice Executes a buy operation with a fee, swapping ETH for tokens
-/// @dev This function includes a fee mechanism and supports fee-on-transfer tokens
-/// @param amountOutMin The minimum amount of output tokens to receive
-/// @param tokenAddress The address of the output token
-/// @param deadline The time by which the transaction must be confirmed
-/// @param fee The fee percentage for the operation
-function ProphetBuy(
-    uint amountOutMin,
-    address tokenAddress,
-    uint deadline,
-    uint fee
-) external payable virtual override ensure(deadline) {
-    
-    address[] memory path = getPathForTokenToToken(true, tokenAddress);
-    require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
-    uint256 feeAmount = (msg.value * fee) / 10_000;
-    require(feeAmount > 0, 'UniswapV2Router: INVALID_FEE_AMOUNT');
-    totalFeeCollected += feeAmount;
+        uint256 amountIn = msg.value - feeAmount;
+        IWETH(WETH).deposit{value: amountIn}();
+        assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn));
+        uint balanceBefore = IERC20(tokenAddress).balanceOf(msg.sender);
+        _swapSupportingFeeOnTransferTokens(path, msg.sender);
+        require(
+            IERC20(path[path.length - 1]).balanceOf(msg.sender).sub(balanceBefore) >= amountOutMin,
+            'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
+        );
+        emit ProphetFee(feeAmount, msg.sender);
+    }
 
-    uint256 amountIn = msg.value - feeAmount;
-    IWETH(WETH).deposit{value: amountIn}();
-    assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn));
-    uint balanceBefore = IERC20(tokenAddress).balanceOf(msg.sender);
-    _swapSupportingFeeOnTransferTokens(path, msg.sender);
-    require(
-        IERC20(path[path.length - 1]).balanceOf(msg.sender).sub(balanceBefore) >= amountOutMin,
-        'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
-    );
-    emit ProphetFee(feeAmount, msg.sender);
-}
-
-/// @notice Executes a sell operation with a fee, swapping tokens for ETH and supporting fee-on-transfer tokens
-/// @dev This function includes a fee mechanism and supports fee-on-transfer tokens
-/// @param amountIn The amount of input tokens to sell
-/// @param amountOutMin The minimum amount of ETH to receive
-/// @param tokenAddress The address of the input token
-/// @param deadline The time by which the transaction must be confirmed
-/// @param fee The fee percentage for the operation
-   function ProphetSell(
+    /// @notice Executes a sell operation with a fee, swapping tokens for ETH and supporting fee-on-transfer tokens
+    /// @dev This function includes a fee mechanism and supports fee-on-transfer tokens
+    /// @param amountIn The amount of input tokens to sell
+    /// @param amountOutMin The minimum amount of ETH to receive
+    /// @param tokenAddress The address of the input token
+    /// @param deadline The time by which the transaction must be confirmed
+    /// @param fee The fee percentage for the operation
+    function ProphetSell(
         uint amountIn,
         uint amountOutMin,
         address tokenAddress,
@@ -492,17 +490,17 @@ function ProphetBuy(
         emit ProphetFee(feeAmount, msg.sender);
     }
 
-/// @notice Allows the contract owner to withdraw tokens from the contract
-/// @param _token The token address to withdraw
-function withdraw(address _token) external onlyOwner {
-    TransferHelper.safeTransfer(_token, owner, IERC20(_token).balanceOf(address(this)));
-}
+    /// @notice Allows the contract owner to withdraw tokens from the contract
+    /// @param _token The token address to withdraw
+    function withdraw(address _token) external onlyOwner {
+        TransferHelper.safeTransfer(_token, owner, IERC20(_token).balanceOf(address(this)));
+    }
 
-/// @notice Allows the contract owner to withdraw ETH from the contract
-function withdrawETH() external onlyOwner {
-    totalFeeCollected = 0;
-    TransferHelper.safeTransferETH(owner, address(this).balance);
-}
+    /// @notice Allows the contract owner to withdraw ETH from the contract
+    function withdrawETH() external onlyOwner {
+        totalFeeCollected = 0;
+        TransferHelper.safeTransferETH(owner, address(this).balance);
+    }
 
     // **** LIBRARY FUNCTIONS ****
     function quote(uint amountA, uint reserveA, uint reserveB) public pure virtual override returns (uint amountB) {
@@ -539,8 +537,6 @@ function withdrawETH() external onlyOwner {
         return UniswapV2Library.getAmountsIn(factory, amountOut, path);
     }
 
-  
-
     /// @notice Helper function to get the swap path for token to token or ETH to token swaps
     /// @param swapETH Indicates whether the swap involves ETH
     /// @param _tokenOut The address of the output token
@@ -557,9 +553,13 @@ function withdrawETH() external onlyOwner {
         return path;
     }
 
-    function setOwnership(address user) public onlyOwner {
-        require(user != address(0), 'UniswapV2Router: ZERO_ADDRESS');
-        owner = user;
-        //emit an event
+    /**
+     * @notice Transfers ownership of the contract to a new address.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), 'UniswapV2Router: ZERO_ADDRESS');
+        owner = newOwner;
+        emit OwnershipChanged(owner);
     }
 }
