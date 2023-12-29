@@ -297,26 +297,24 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         _swap(amounts, path, to);
     }
 
-    //@audit-info  ProphetSmartSell
-    function swapTokensForExactETH(
-        uint amountOut,
-        uint amountInMax,
-        address tokenAddress,
-        //address[] calldata path,
-        address to,
-        uint deadline,
-        uint feeAmount
-    ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
-        address[] memory path = getPathForTokenToToken(false, tokenAddress);
-        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
+    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
+        external
+        virtual
+        override
+        ensure(deadline)
+        returns (uint[] memory amounts)
+    {
+        require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= amountInMax, 'PropherRouter: EXCESSIVE_INPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(path[0], to, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]);
+        require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
+        TransferHelper.safeTransferFrom(
+            path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
+        );
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
-        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1] - feeAmount);
+        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
     }
-
+    
     function swapExactTokensForETH(
         uint amountIn,
         uint amountOutMin,
@@ -403,6 +401,34 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         );
     }
 
+    function swapTokensSupportingFeeOnTransferTokensForExactETH(
+        uint amountIn,
+        uint amountOutMin,
+        address[] memory path,
+        address to,
+        uint deadline,
+        uint feeAmount
+    ) public ensure(deadline) {
+        TransferHelper.safeTransferFrom(
+            path[0],
+            msg.sender,
+            UniswapV2Library.pairFor(factory, path[0], path[1]),
+            amountIn
+        );
+        uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(address(this));
+        _swapSupportingFeeOnTransferTokens(path, address(this));
+
+        require(
+            IERC20(path[path.length - 1]).balanceOf(address(this)).sub(balanceBefore) >= amountOutMin,
+            'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+        );
+        uint balanceAfter = IERC20(path[path.length - 1]).balanceOf(address(this));
+
+        uint amountOut = balanceAfter - balanceBefore; //Amount of WETH after the swap
+        IWETH(WETH).withdraw(amountOut);
+        TransferHelper.safeTransferETH(to, amountOut - feeAmount);
+    }
+
     /// @notice Executes a smart sell operation with a fee, swapping tokens for ETH
     /// @dev This function includes a fee mechanism and uses internal swap functions
     /// @param amountOut The amount of ETH to receive from the swap
@@ -420,7 +446,21 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint256 feeAmount = (amountOut * fee) / 10_000;
         require(feeAmount > 0, 'PropherRouter: FEE_AMOUNT');
         totalFeeCollected += feeAmount;
-        this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender, deadline, feeAmount);
+
+        address[] memory path = getPathForTokenToToken(false, tokenAddress);
+        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
+        //Gets the amount of tokenAddress required with "amountOut + feeAmount" amount of ETH
+        uint[] memory amounts = UniswapV2Library.getAmountsIn(factory, amountOut + feeAmount, path);
+        require(amounts[0] <= amountInMax, 'PropherRouter: EXCESSIVE_INPUT_AMOUNT');
+
+        swapTokensSupportingFeeOnTransferTokensForExactETH(
+            amounts[0], // Amount of tokenAddress
+            amountOut, // Min Amount of WETH required
+            path,
+            msg.sender,
+            deadline,
+            feeAmount
+        );
         emit ProphetFee(feeAmount, msg.sender);
     }
 

@@ -36,12 +36,6 @@ contract ProphetRouterTest is Test {
         vm.deal(bob, 1000 ether);
     }
 
-    function test_sampleTest() public {
-        console2.log(address(prophetRouter));
-        console2.log(prophetRouter.owner());
-        assertEq(prophetRouter.owner(), owner);
-    }
-
     function test_ProphetBuy() public {
         //## USDC token
         vm.prank(alice);
@@ -308,19 +302,14 @@ contract ProphetRouterTest is Test {
         assertGt(address(linkWhale).balance, ethBalanceBefore + (69 ether * 0.9));
         vm.stopPrank();
 
-        //@audit-info -> ProphetSmartSell not supported for Fee-On-Transfer Tokens, ERROR == [FAIL. Reason: revert: UniswapV2: K] test_ProphetSmartSell() (gas: 615414)
-        //@note ->
-        // //## PAXG token
-        // vm.startPrank(paxgWhale);
-        // ethBalanceBefore = address(paxgWhale).balance;
-        // console2.log(ethBalanceBefore);
-        // console2.log(IERC20(paxgToken).balanceOf(paxgWhale));
-        // IERC20(paxgToken).approve(address(prophetRouter), 15 ether);
-        // prophetRouter.ProphetSmartSell(10 ether, 15 ether, paxgToken, block.timestamp, 1000);
-        // console2.log(address(paxgWhale).balance);
-        // console2.log(IERC20(paxgToken).balanceOf(paxgWhale));
-        // //assertGt(address(linkWhale).balance, ethBalanceBefore + (100 ether * 0.9));
-        // vm.stopPrank();
+        //@audit-ok -> ProphetSmartSell not supported for Fee-On-Transfer Tokens, ERROR == [FAIL. Reason: revert: UniswapV2: K] test_ProphetSmartSell() (gas: 615414)
+        //## PAXG token
+        vm.startPrank(paxgWhale);
+        ethBalanceBefore = address(paxgWhale).balance;
+        IERC20(paxgToken).approve(address(prophetRouter), 15 ether);
+        prophetRouter.ProphetSmartSell(10 ether, 15 ether, paxgToken, block.timestamp, 1000);
+        assertGt(address(paxgWhale).balance, ethBalanceBefore + (10 ether * 0.9));
+        vm.stopPrank();
     }
 
     function test_ProphetSmartSell_deadline() public {
@@ -351,6 +340,13 @@ contract ProphetRouterTest is Test {
         vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSmartSell(2000 * 10 ** 6, 0.75 ether, linkToken, block.timestamp - 1, 1000);
         vm.stopPrank();
+
+        //## PAXG token
+        vm.startPrank(paxgWhale);
+        IERC20(paxgToken).approve(address(prophetRouter), 15 ether);
+        vm.expectRevert('PropherRouter: EXPIRED');
+        prophetRouter.ProphetSmartSell(10 ether, 15 ether, paxgToken, block.timestamp - 1, 1000);
+        vm.stopPrank();
     }
 
     function test_ProphetSmartSell_slippage() public {
@@ -376,6 +372,14 @@ contract ProphetRouterTest is Test {
         IERC20(linkToken).approve(address(prophetRouter), 12500 ether);
         vm.expectRevert('PropherRouter: EXCESSIVE_INPUT_AMOUNT');
         prophetRouter.ProphetSmartSell(69 ether, 10000 ether, linkToken, block.timestamp, 1000);
+        vm.stopPrank();
+
+        //## PAXG token
+        vm.startPrank(paxgWhale);
+        ethBalanceBefore = address(paxgWhale).balance;
+        IERC20(paxgToken).approve(address(prophetRouter), 15 ether);
+        vm.expectRevert('PropherRouter: EXCESSIVE_INPUT_AMOUNT');
+        prophetRouter.ProphetSmartSell(10 ether, 10 ether, paxgToken, block.timestamp, 1000);
         vm.stopPrank();
     }
 
