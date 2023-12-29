@@ -97,11 +97,9 @@ interface IUniswapV2Router01 {
     function swapTokensForExactETH(
         uint amountOut,
         uint amountInMax,
-        address tokenAddress,
-        //address[] calldata path,
+        address[] calldata path,
         address to,
-        uint deadline,
-        uint feeAmount //@audit-info  ProphetSmartSell
+        uint deadline
     ) external returns (uint[] memory amounts);
 
     function swapExactTokensForETH(
