@@ -77,62 +77,62 @@ contract ProphetRouterTest is Test {
     function test_ProphetBuy_deadlineTest() public {
         //## USDC token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, block.timestamp - 1, 1000);
 
         //## USDT token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdtToken, block.timestamp - 1, 1000);
 
         //## WBTC token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, wbtcToken, block.timestamp - 1, 1000);
 
         //## LINK token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, linkToken, block.timestamp - 1, 1000);
 
         //## PAXG token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetBuy{value: 200 ether}(180 ether, paxgToken, block.timestamp - 1, 1000);
     }
 
     function test_ProphetBuy_slippageTest() public {
         //## USDC token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetBuy{value: 100 ether}(300000 * 10 ** 6, usdcToken, block.timestamp, 1000);
         uint256 balanceOfUsdc = IERC20(usdcToken).balanceOf(alice);
         assertTrue(balanceOfUsdc == 0);
 
         //## USDT token
         vm.prank(bob);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetBuy{value: 100 ether}(250000 * 10 ** 6, usdtToken, block.timestamp, 1000);
         uint256 balanceOfUsdt = IERC20(usdtToken).balanceOf(bob);
         assertTrue(balanceOfUsdt == 0);
 
         //## WBTC token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetBuy{value: 100 ether}(6 * 10 ** 8, wbtcToken, block.timestamp, 1000);
         uint256 balanceOfWbtc = IERC20(wbtcToken).balanceOf(alice);
         assertTrue(balanceOfWbtc == 0);
 
         //## LINK token
         vm.prank(bob);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetBuy{value: 100 ether}(16000 ether, linkToken, block.timestamp, 1000);
         uint256 balanceOfLINK = IERC20(linkToken).balanceOf(bob);
         assertTrue(balanceOfLINK == 0);
 
         //## PAXG token
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetBuy{value: 200 ether}(200 ether, paxgToken, block.timestamp, 1000);
         uint256 balanceOfPAXG = IERC20(paxgToken).balanceOf(alice);
         assertTrue(balanceOfPAXG == 0);
@@ -141,7 +141,7 @@ contract ProphetRouterTest is Test {
     function test_ProphetBuy_sanityChecks() public {
         //When msg.value == 0
         vm.prank(alice);
-        vm.expectRevert('UniswapV2Router: INVALID_FEE_AMOUNT');
+        vm.expectRevert('PropherRouter: INVALID_FEE_AMOUNT');
         prophetRouter.ProphetBuy{value: 0}(40000 * 10 ** 6, usdtToken, block.timestamp, 1000);
 
         //When tokenAddress == address(0)
@@ -196,35 +196,35 @@ contract ProphetRouterTest is Test {
         //## USDC token
         vm.startPrank(usdcWhale);
         IERC20(usdcToken).approve(address(prophetRouter), 2500 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSell(2000 * 10 ** 6, 0.75 ether, usdcToken, block.timestamp - 1, 1000);
         vm.stopPrank();
 
         // //## USDT token
         vm.startPrank(usdtWhale);
         TransferHelper.safeApprove(usdtToken, address(prophetRouter), 5000 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSell(2000 * 10 ** 6, 0.75 ether, usdtToken, block.timestamp - 1, 1000);
         vm.stopPrank();
 
         //## WBTC token
         vm.startPrank(wbtcWhale);
         IERC20(wbtcToken).approve(address(prophetRouter), 2500 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSell(2000 * 10 ** 6, 0.75 ether, wbtcToken, block.timestamp - 1, 1000);
         vm.stopPrank();
 
         //## LINK token
         vm.startPrank(linkWhale);
         IERC20(linkToken).approve(address(prophetRouter), 2500 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSell(2000 * 10 ** 6, 0.75 ether, linkToken, block.timestamp - 1, 1000);
         vm.stopPrank();
 
         //## PAXG token
         vm.startPrank(paxgWhale);
         IERC20(paxgToken).approve(address(prophetRouter), 100 ether);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSell(100 ether, 75 ether, paxgToken, block.timestamp - 1, 1000);
         vm.stopPrank();
     }
@@ -234,7 +234,7 @@ contract ProphetRouterTest is Test {
         vm.startPrank(usdcWhale);
         uint256 ethBalanceBefore = address(usdcWhale).balance;
         IERC20(usdcToken).approve(address(prophetRouter), 2000 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetSell(2000 * 10 ** 6, 1 ether, usdcToken, block.timestamp, 1000);
         vm.stopPrank();
 
@@ -242,7 +242,7 @@ contract ProphetRouterTest is Test {
         vm.startPrank(usdtWhale);
         ethBalanceBefore = address(usdtWhale).balance;
         TransferHelper.safeApprove(usdtToken, address(prophetRouter), 5000 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetSell(5000 * 10 ** 6, 3 ether, usdtToken, block.timestamp, 1000);
         vm.stopPrank();
 
@@ -250,7 +250,7 @@ contract ProphetRouterTest is Test {
         vm.startPrank(wbtcWhale);
         ethBalanceBefore = address(wbtcWhale).balance;
         IERC20(wbtcToken).approve(address(prophetRouter), 6 * 10 ** 8);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetSell(6 * 10 ** 8, 200 ether, wbtcToken, block.timestamp, 1000);
         vm.stopPrank();
 
@@ -258,7 +258,7 @@ contract ProphetRouterTest is Test {
         vm.startPrank(linkWhale);
         ethBalanceBefore = address(usdcWhale).balance;
         IERC20(linkToken).approve(address(prophetRouter), 12500 ether);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetSell(12500 ether, 95 ether, linkToken, block.timestamp, 1000);
         vm.stopPrank();
 
@@ -266,7 +266,7 @@ contract ProphetRouterTest is Test {
         vm.startPrank(paxgWhale);
         ethBalanceBefore = address(paxgWhale).balance;
         IERC20(paxgToken).approve(address(prophetRouter), 100 ether);
-        vm.expectRevert('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         prophetRouter.ProphetSell(100 ether, 99 ether, paxgToken, block.timestamp, 1000);
         vm.stopPrank();
     }
@@ -327,28 +327,28 @@ contract ProphetRouterTest is Test {
         //## USDC token
         vm.startPrank(usdcWhale);
         IERC20(usdcToken).approve(address(prophetRouter), 2500 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSmartSell(2000 * 10 ** 6, 0.75 ether, usdcToken, block.timestamp - 1, 1000);
         vm.stopPrank();
 
         // //## USDT token
         vm.startPrank(usdtWhale);
         TransferHelper.safeApprove(usdtToken, address(prophetRouter), 5000 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSell(2000 * 10 ** 6, 0.75 ether, usdtToken, block.timestamp - 1, 1000);
         vm.stopPrank();
 
         //## WBTC token
         vm.startPrank(wbtcWhale);
         IERC20(wbtcToken).approve(address(prophetRouter), 2500 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSmartSell(2000 * 10 ** 6, 0.75 ether, wbtcToken, block.timestamp - 1, 1000);
         vm.stopPrank();
 
         //## LINK token
         vm.startPrank(linkWhale);
         IERC20(linkToken).approve(address(prophetRouter), 2500 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXPIRED');
+        vm.expectRevert('PropherRouter: EXPIRED');
         prophetRouter.ProphetSmartSell(2000 * 10 ** 6, 0.75 ether, linkToken, block.timestamp - 1, 1000);
         vm.stopPrank();
     }
@@ -358,7 +358,7 @@ contract ProphetRouterTest is Test {
         vm.startPrank(usdcWhale);
         uint256 ethBalanceBefore = address(usdcWhale).balance;
         IERC20(usdcToken).approve(address(prophetRouter), 600 * 10 ** 6);
-        vm.expectRevert('UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: EXCESSIVE_INPUT_AMOUNT');
         prophetRouter.ProphetSmartSell(0.25 ether, 500 * 10 ** 6, usdcToken, block.timestamp, 1000);
         vm.stopPrank();
 
@@ -374,7 +374,7 @@ contract ProphetRouterTest is Test {
         vm.startPrank(linkWhale);
         ethBalanceBefore = address(linkWhale).balance;
         IERC20(linkToken).approve(address(prophetRouter), 12500 ether);
-        vm.expectRevert('UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
+        vm.expectRevert('PropherRouter: EXCESSIVE_INPUT_AMOUNT');
         prophetRouter.ProphetSmartSell(69 ether, 10000 ether, linkToken, block.timestamp, 1000);
         vm.stopPrank();
     }
@@ -402,7 +402,7 @@ contract ProphetRouterTest is Test {
 
     function test_Withdrawal_sanityChecks() public {
         vm.prank(bob);
-        vm.expectRevert('UniswapV2Router: NOT OWNER');
+        vm.expectRevert('PropherRouter: NOT OWNER');
         prophetRouter.withdrawETH();
     }
 

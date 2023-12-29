@@ -22,12 +22,12 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     address public owner;
 
     modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
+        require(deadline >= block.timestamp, 'PropherRouter: EXPIRED');
         _;
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, 'UniswapV2Router: NOT OWNER');
+        require(msg.sender == owner, 'PropherRouter: NOT OWNER');
         _;
     }
 
@@ -58,12 +58,12 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         } else {
             uint amountBOptimal = UniswapV2Library.quote(amountADesired, reserveA, reserveB);
             if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, 'UniswapV2Router: INSUFFICIENT_B_AMOUNT');
+                require(amountBOptimal >= amountBMin, 'PropherRouter: INSUFFICIENT_B_AMOUNT');
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
                 uint amountAOptimal = UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, 'UniswapV2Router: INSUFFICIENT_A_AMOUNT');
+                require(amountAOptimal >= amountAMin, 'PropherRouter: INSUFFICIENT_A_AMOUNT');
                 (amountA, amountB) = (amountAOptimal, amountBDesired);
             }
         }
@@ -126,8 +126,8 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         (uint amount0, uint amount1) = IUniswapV2Pair(pair).burn(to);
         (address token0, ) = UniswapV2Library.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
-        require(amountA >= amountAMin, 'UniswapV2Router: INSUFFICIENT_A_AMOUNT');
-        require(amountB >= amountBMin, 'UniswapV2Router: INSUFFICIENT_B_AMOUNT');
+        require(amountA >= amountAMin, 'PropherRouter: INSUFFICIENT_A_AMOUNT');
+        require(amountB >= amountBMin, 'PropherRouter: INSUFFICIENT_B_AMOUNT');
     }
 
     function removeLiquidityETH(
@@ -255,7 +255,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint deadline
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amounts[amounts.length - 1] >= amountOutMin, 'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0],
             msg.sender,
@@ -273,7 +273,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint deadline
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
+        require(amounts[0] <= amountInMax, 'PropherRouter: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0],
             msg.sender,
@@ -289,9 +289,9 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         address to,
         uint deadline
     ) external payable virtual override ensure(deadline) returns (uint[] memory amounts) {
-        require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
+        require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsOut(factory, msg.value, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amounts[amounts.length - 1] >= amountOutMin, 'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
@@ -308,9 +308,9 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint feeAmount
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         address[] memory path = getPathForTokenToToken(false, tokenAddress);
-        require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
+        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
+        require(amounts[0] <= amountInMax, 'PropherRouter: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(path[0], to, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]);
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
@@ -325,12 +325,12 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint deadline,
         uint fee
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
-        require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
+        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
         uint amountOut = amounts[amounts.length - 1];
         uint256 feeAmount = (amountOut * fee) / 10_000;
-        require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
-        require(amountOut - fee >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(feeAmount > 0, 'PropherRouter: FEE_AMOUNT');
+        require(amountOut - fee >= amountOutMin, 'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
 
         TransferHelper.safeTransferFrom(
             path[0],
@@ -350,9 +350,9 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         address to,
         uint deadline
     ) external payable virtual override ensure(deadline) returns (uint[] memory amounts) {
-        require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
+        require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= msg.value, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
+        require(amounts[0] <= msg.value, 'PropherRouter: EXCESSIVE_INPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
@@ -399,7 +399,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
             IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
-            'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
+            'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
 
@@ -418,7 +418,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint fee
     ) public {
         uint256 feeAmount = (amountOut * fee) / 10_000;
-        require(feeAmount > 0, 'UniswapV2Router: FEE_AMOUNT');
+        require(feeAmount > 0, 'PropherRouter: FEE_AMOUNT');
         totalFeeCollected += feeAmount;
         this.swapTokensForExactETH(amountOut + feeAmount, amountInMax, tokenAddress, msg.sender, deadline, feeAmount);
         emit ProphetFee(feeAmount, msg.sender);
@@ -437,9 +437,9 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint fee
     ) external payable virtual override ensure(deadline) {
         address[] memory path = getPathForTokenToToken(true, tokenAddress);
-        require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
+        require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
         uint256 feeAmount = (msg.value * fee) / 10_000;
-        require(feeAmount > 0, 'UniswapV2Router: INVALID_FEE_AMOUNT');
+        require(feeAmount > 0, 'PropherRouter: INVALID_FEE_AMOUNT');
         totalFeeCollected += feeAmount;
 
         uint256 amountIn = msg.value - feeAmount;
@@ -449,7 +449,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         _swapSupportingFeeOnTransferTokens(path, msg.sender);
         require(
             IERC20(path[path.length - 1]).balanceOf(msg.sender).sub(balanceBefore) >= amountOutMin,
-            'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
+            'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT'
         );
         emit ProphetFee(feeAmount, msg.sender);
     }
@@ -469,7 +469,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint fee
     ) external virtual override ensure(deadline) {
         address[] memory path = getPathForTokenToToken(false, tokenAddress);
-        require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
+        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
         TransferHelper.safeTransferFrom(
             path[0],
             msg.sender,
@@ -478,12 +478,12 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         );
         _swapSupportingFeeOnTransferTokens(path, address(this));
         uint amountOut = IERC20(WETH).balanceOf(address(this));
-        require(amountOut >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amountOut >= amountOutMin, 'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).withdraw(amountOut);
 
         // Calculate and collect the fee
         uint256 feeAmount = (amountOut * fee) / 10_000;
-        require(feeAmount > 0, 'UniswapV2Router: INVALID_FEE_AMOUNT');
+        require(feeAmount > 0, 'PropherRouter: INVALID_FEE_AMOUNT');
         totalFeeCollected += feeAmount;
 
         TransferHelper.safeTransferETH(msg.sender, amountOut - feeAmount);
@@ -558,7 +558,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
      * @param newOwner The address to transfer ownership to.
      */
     function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0), 'UniswapV2Router: ZERO_ADDRESS');
+        require(newOwner != address(0), 'PropherRouter: ZERO_ADDRESS');
         owner = newOwner;
         emit OwnershipChanged(owner);
     }
