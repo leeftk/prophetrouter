@@ -20,6 +20,7 @@ contract ProphetRouterTest is Test {
     address public wbtcToken = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
     address public linkToken = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
     address public paxgToken = 0x45804880De22913dAFE09f4980848ECE6EcbAf78;
+    address public mdtToken = 0xF97F0c51cE6c62A6AcC6431cF69C6b535e2440E4;
 
     address public usdcWhale = 0xA83DCc0B6aF233E677c0Ae8d8411E60eaE14d409;
     address public usdtWhale = 0x650296c3d2FF17b6aC810d47cf7c307e98041aE7;
@@ -39,31 +40,31 @@ contract ProphetRouterTest is Test {
     function test_ProphetBuy() public {
         //## USDC token
         vm.prank(alice);
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, alice, block.timestamp, 1000);
         uint256 balanceOfUsdc = IERC20(usdcToken).balanceOf(alice);
         assertFalse(balanceOfUsdc == 0);
 
         //## USDT token
         vm.prank(bob);
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdtToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdtToken, bob, block.timestamp, 1000);
         uint256 balanceOfUsdt = IERC20(usdtToken).balanceOf(bob);
         assertFalse(balanceOfUsdt == 0);
 
         //## WBTC token
         vm.prank(alice);
-        prophetRouter.ProphetBuy{value: 200 ether}(7.5 * 10 ** 8, wbtcToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(7.5 * 10 ** 8, wbtcToken, alice, block.timestamp, 1000);
         uint256 balanceOfWbtc = IERC20(wbtcToken).balanceOf(alice);
         assertFalse(balanceOfWbtc == 0);
 
         //## LINK token
         vm.prank(bob);
-        prophetRouter.ProphetBuy{value: 200 ether}(20000 ether, linkToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(20000 ether, linkToken, bob, block.timestamp, 1000);
         uint256 balanceOfLINK = IERC20(linkToken).balanceOf(bob);
         assertFalse(balanceOfLINK == 0);
 
         //## PAXG token
         vm.prank(alice);
-        prophetRouter.ProphetBuy{value: 200 ether}(180 ether, paxgToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(180 ether, paxgToken, alice, block.timestamp, 1000);
         uint256 balanceOfPAXG = IERC20(paxgToken).balanceOf(alice);
         assertFalse(balanceOfPAXG == 0);
     }
@@ -72,62 +73,62 @@ contract ProphetRouterTest is Test {
         //## USDC token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: EXPIRED');
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, block.timestamp - 1, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, alice, block.timestamp - 1, 1000);
 
         //## USDT token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: EXPIRED');
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdtToken, block.timestamp - 1, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdtToken, alice, block.timestamp - 1, 1000);
 
         //## WBTC token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: EXPIRED');
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, wbtcToken, block.timestamp - 1, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, wbtcToken, alice, block.timestamp - 1, 1000);
 
         //## LINK token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: EXPIRED');
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, linkToken, block.timestamp - 1, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, linkToken, alice, block.timestamp - 1, 1000);
 
         //## PAXG token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: EXPIRED');
-        prophetRouter.ProphetBuy{value: 200 ether}(180 ether, paxgToken, block.timestamp - 1, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(180 ether, paxgToken, alice, block.timestamp - 1, 1000);
     }
 
     function test_ProphetBuy_slippageTest() public {
         //## USDC token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        prophetRouter.ProphetBuy{value: 100 ether}(300000 * 10 ** 6, usdcToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 100 ether}(300000 * 10 ** 6, usdcToken, alice, block.timestamp, 1000);
         uint256 balanceOfUsdc = IERC20(usdcToken).balanceOf(alice);
         assertTrue(balanceOfUsdc == 0);
 
         //## USDT token
         vm.prank(bob);
         vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        prophetRouter.ProphetBuy{value: 100 ether}(250000 * 10 ** 6, usdtToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 100 ether}(250000 * 10 ** 6, usdtToken, alice, block.timestamp, 1000);
         uint256 balanceOfUsdt = IERC20(usdtToken).balanceOf(bob);
         assertTrue(balanceOfUsdt == 0);
 
         //## WBTC token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        prophetRouter.ProphetBuy{value: 100 ether}(6 * 10 ** 8, wbtcToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 100 ether}(6 * 10 ** 8, wbtcToken, alice, block.timestamp, 1000);
         uint256 balanceOfWbtc = IERC20(wbtcToken).balanceOf(alice);
         assertTrue(balanceOfWbtc == 0);
 
         //## LINK token
         vm.prank(bob);
         vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        prophetRouter.ProphetBuy{value: 100 ether}(16000 ether, linkToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 100 ether}(16000 ether, linkToken, alice, block.timestamp, 1000);
         uint256 balanceOfLINK = IERC20(linkToken).balanceOf(bob);
         assertTrue(balanceOfLINK == 0);
 
         //## PAXG token
         vm.prank(alice);
         vm.expectRevert('PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        prophetRouter.ProphetBuy{value: 200 ether}(200 ether, paxgToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(200 ether, paxgToken, alice, block.timestamp, 1000);
         uint256 balanceOfPAXG = IERC20(paxgToken).balanceOf(alice);
         assertTrue(balanceOfPAXG == 0);
     }
@@ -136,12 +137,12 @@ contract ProphetRouterTest is Test {
         //When msg.value == 0
         vm.prank(alice);
         vm.expectRevert('PropherRouter: INVALID_FEE_AMOUNT');
-        prophetRouter.ProphetBuy{value: 0}(40000 * 10 ** 6, usdtToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 0}(40000 * 10 ** 6, usdtToken, alice, block.timestamp, 1000);
 
         //When tokenAddress == address(0)
         vm.prank(bob);
         vm.expectRevert('UniswapV2Library: ZERO_ADDRESS');
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, address(0), block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, address(0), alice, block.timestamp, 1000);
     }
 
     function test_ProphetSell() public {
@@ -383,14 +384,37 @@ contract ProphetRouterTest is Test {
         vm.stopPrank();
     }
 
+    function test_ProphetMaxBuy() public {
+        //## MDT token
+        vm.prank(alice);
+        prophetRouter.ProphetMaxBuy{value: 0.05 ether}(1 ether, mdtToken, alice, block.timestamp, 1000);
+        uint256 balanceOfMDT = IERC20(mdtToken).balanceOf(address(alice));
+        assertFalse(balanceOfMDT == 0);
+    }
+
+    function test_ProphetMaxBuy_deadline() public {
+        //## MDT token
+        vm.prank(alice);
+        vm.expectRevert('PropherRouter: EXPIRED');
+        prophetRouter.ProphetMaxBuy{value: 0.05 ether}(1 ether, mdtToken, alice, block.timestamp - 1, 1000);
+    }
+
+    // function test_ProphetMaxBuy_slippageTest() public {
+    //     //## MDT token
+    //     vm.prank(alice);
+    //     console2.log("alice ETH: before", address(alice).balance);
+    //     prophetRouter.ProphetMaxBuy{value: 0.01 ether}(7599999 ether, mdtToken, alice, block.timestamp, 1000);
+    //     console2.log("alice ETH: after", address(alice).balance);
+    // }
+
     function test_FeeAfterSwap() public {
         vm.prank(alice);
-        prophetRouter.ProphetBuy{value: 100 ether}(44000 * 10 ** 6, usdcToken, block.timestamp, 400);
+        prophetRouter.ProphetBuy{value: 100 ether}(44000 * 10 ** 6, usdcToken, alice, block.timestamp, 400);
         assertFalse(prophetRouter.totalFeeCollected() == 0);
         assertEq(address(prophetRouter).balance, 4 ether);
 
         vm.prank(bob);
-        prophetRouter.ProphetBuy{value: 60 ether}(44000 * 10 ** 6, usdcToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 60 ether}(44000 * 10 ** 6, usdcToken, alice, block.timestamp, 1000);
         assertEq(address(prophetRouter).balance, 10 ether);
     }
 
@@ -416,7 +440,7 @@ contract ProphetRouterTest is Test {
 
         emit ProphetFee(1000, alice);
 
-        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, block.timestamp, 1000);
+        prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, usdcToken, alice, block.timestamp, 1000);
         uint256 balanceOfUsdc = IERC20(usdcToken).balanceOf(alice);
         assertFalse(balanceOfUsdc == 0);
     }

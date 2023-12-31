@@ -261,6 +261,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     function ProphetBuy(
         uint amountOutMin,
         address tokenAddress,
+        address to,
         uint deadline,
         uint fee
     ) external payable virtual override ensure(deadline) {
@@ -273,13 +274,47 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint256 amountIn = msg.value - feeAmount;
         IWETH(WETH).deposit{value: amountIn}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn));
-        uint balanceBefore = IERC20(tokenAddress).balanceOf(msg.sender);
-        _swapSupportingFeeOnTransferTokens(path, msg.sender);
+        uint balanceBefore = IERC20(tokenAddress).balanceOf(to);
+        _swapSupportingFeeOnTransferTokens(path, to);
         require(
-            IERC20(path[path.length - 1]).balanceOf(msg.sender).sub(balanceBefore) >= amountOutMin,
+            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
             'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT'
         );
-        emit ProphetFee(feeAmount, msg.sender);
+        emit ProphetFee(feeAmount, to);
+    }
+
+    function ProphetMaxBuy(
+        uint amountOutMin,
+        address tokenAddress,
+        address to,
+        uint deadline,
+        uint fee
+    ) external payable ensure(deadline) {
+        address[] memory path = getPathForTokenToToken(true, tokenAddress);
+        require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
+
+        uint maxAttempts = 10;
+        bool swapComplete = false;
+        uint amountIn = msg.value;
+        uint tempAmountIn = msg.value;
+        while (swapComplete == false) {
+            maxAttempts--;
+            if (maxAttempts == 0) {
+                //TransferHelper.safeTransferETH(to, amountIn); //@note-> adding this to refund the msg.value back to user
+                break;
+            } //@note -> adding this because, if the ProphetBuy for other reasons other than buylimit, it may end up in catch block and result in infinite loop. Need to talk to @33audits
+            //@note -> fee calculation already handled as part of ProphetBuy()
+            try this.ProphetBuy{value: tempAmountIn}(amountOutMin, tokenAddress, to, deadline, fee) {
+                swapComplete = true;
+                uint amountOutETH = amountIn - tempAmountIn;
+                if (amountOutETH > 0) TransferHelper.safeTransferETH(to, amountOutETH);
+                break;
+            } catch {
+                //@note -> Example revert for token max buy("Buy transfer amount exceeds the max buy")
+                tempAmountIn = (tempAmountIn * 9000) / 10000;
+                continue;
+            }
+        }
     }
 
     /// @notice Executes a sell operation with a fee, swapping tokens for ETH and supporting fee-on-transfer tokens

@@ -16,7 +16,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountOutMin,
         //address[] calldata path,
         address tokenAddress,
-        //address to,
+        address to,
         uint deadline,
         uint fee
     ) external payable; //@audit-info - ProphetBuy
