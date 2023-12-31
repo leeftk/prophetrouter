@@ -107,24 +107,27 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         _swap(amounts, path, to);
     }
 
-    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-        external
-        virtual
-        override
-        ensure(deadline)
-        returns (uint[] memory amounts)
-    {
+    function swapTokensForExactETH(
+        uint amountOut,
+        uint amountInMax,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
+            path[0],
+            msg.sender,
+            UniswapV2Library.pairFor(factory, path[0], path[1]),
+            amounts[0]
         );
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
     }
-    
+
     function swapExactTokensForETH(
         uint amountIn,
         uint amountOutMin,
@@ -211,6 +214,16 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         );
     }
 
+    /**
+     * @dev Swaps ERC20 tokens for a specific amount of ETH, supporting fee on transfer tokens.
+     * @param amountIn The amount of input tokens to swap
+     * @param amountOutMin The minimum amount of ETH to receive from the swap.
+     * @param path An array of token addresses representing the swap path.
+     * @param to The address to receive the swapped ETH.
+     * @param deadline The deadline by which the swap must be executed.
+     * @param feeAmount The fee amount to subtract from the total ETH before transferring to the recipient.
+     *
+     */
     function swapTokensSupportingFeeOnTransferTokensForExactETH(
         uint amountIn,
         uint amountOutMin,
@@ -237,41 +250,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint amountOut = balanceAfter - balanceBefore; //Amount of WETH after the swap
         IWETH(WETH).withdraw(amountOut);
         TransferHelper.safeTransferETH(to, amountOut - feeAmount);
-    }
-
-    /// @notice Executes a smart sell operation with a fee, swapping tokens for ETH
-    /// @dev This function includes a fee mechanism and uses internal swap functions
-    /// @param amountOut The amount of ETH to receive from the swap
-    /// @param amountInMax The maximum amount of input tokens to sell
-    /// @param tokenAddress The address of the token to sell
-    /// @param deadline The time by which the transaction must be confirmed
-    /// @param fee The fee percentage for the operation
-    function ProphetSmartSell(
-        uint amountOut,
-        uint amountInMax,
-        address tokenAddress,
-        uint256 deadline,
-        uint fee
-    ) public {
-        uint256 feeAmount = (amountOut * fee) / 10_000;
-        require(feeAmount > 0, 'PropherRouter: FEE_AMOUNT');
-        totalFeeCollected += feeAmount;
-
-        address[] memory path = getPathForTokenToToken(false, tokenAddress);
-        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
-        //Gets the amount of tokenAddress required with "amountOut + feeAmount" amount of ETH
-        uint[] memory amounts = UniswapV2Library.getAmountsIn(factory, amountOut + feeAmount, path);
-        require(amounts[0] <= amountInMax, 'PropherRouter: EXCESSIVE_INPUT_AMOUNT');
-
-        swapTokensSupportingFeeOnTransferTokensForExactETH(
-            amounts[0], // Amount of tokenAddress
-            amountOut, // Min Amount of WETH required
-            path,
-            msg.sender,
-            deadline,
-            feeAmount
-        );
-        emit ProphetFee(feeAmount, msg.sender);
     }
 
     /// @notice Executes a buy operation with a fee, swapping ETH for tokens
@@ -340,6 +318,41 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         emit ProphetFee(feeAmount, msg.sender);
     }
 
+    /// @notice Executes a smart sell operation with a fee, swapping tokens for ETH
+    /// @dev This function includes a fee mechanism and uses internal swap functions
+    /// @param amountOut The amount of ETH to receive from the swap
+    /// @param amountInMax The maximum amount of input tokens to sell
+    /// @param tokenAddress The address of the token to sell
+    /// @param deadline The time by which the transaction must be confirmed
+    /// @param fee The fee percentage for the operation
+    function ProphetSmartSell(
+        uint amountOut,
+        uint amountInMax,
+        address tokenAddress,
+        uint256 deadline,
+        uint fee
+    ) public {
+        uint256 feeAmount = (amountOut * fee) / 10_000;
+        require(feeAmount > 0, 'PropherRouter: FEE_AMOUNT');
+        totalFeeCollected += feeAmount;
+
+        address[] memory path = getPathForTokenToToken(false, tokenAddress);
+        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
+        //Gets the amount of tokenAddress required with "amountOut + feeAmount" amount of ETH
+        uint[] memory amounts = UniswapV2Library.getAmountsIn(factory, amountOut + feeAmount, path);
+        require(amounts[0] <= amountInMax, 'PropherRouter: EXCESSIVE_INPUT_AMOUNT');
+
+        swapTokensSupportingFeeOnTransferTokensForExactETH(
+            amounts[0], // Amount of tokenAddress
+            amountOut, // Min Amount of WETH required
+            path,
+            msg.sender,
+            deadline,
+            feeAmount
+        );
+        emit ProphetFee(feeAmount, msg.sender);
+    }
+
     /// @notice Allows the contract owner to withdraw tokens from the contract
     /// @param _token The token address to withdraw
     function withdraw(address _token) external onlyOwner {
@@ -388,16 +401,16 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     }
 
     /// @notice Helper function to get the swap path for token to token or ETH to token swaps
-    /// @param swapETH Indicates whether the swap involves ETH
-    /// @param _tokenOut The address of the output token
+    /// @param swapETH Indicates whether the swap involves ETH -> tokenAddr
+    /// @param tokenAddr The address of the other token
     /// @return path The swap path as an array of addresses
-    function getPathForTokenToToken(bool swapETH, address _tokenOut) private pure returns (address[] memory) {
+    function getPathForTokenToToken(bool swapETH, address tokenAddr) private pure returns (address[] memory) {
         address[] memory path = new address[](2);
         if (swapETH) {
             path[0] = WETH;
-            path[1] = _tokenOut;
+            path[1] = tokenAddr;
         } else {
-            path[0] = _tokenOut;
+            path[0] = tokenAddr;
             path[1] = WETH;
         }
         return path;
