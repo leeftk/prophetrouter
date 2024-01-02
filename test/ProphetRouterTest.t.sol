@@ -15,12 +15,12 @@ contract ProphetRouterTest is Test {
     address public bob = makeAddr('bob');
     address public owner = makeAddr('owner');
 
-    address public usdcToken = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    address public usdtToken = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-    address public wbtcToken = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
-    address public linkToken = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
-    address public paxgToken = 0x45804880De22913dAFE09f4980848ECE6EcbAf78;
-    address public mdtToken = 0xF97F0c51cE6c62A6AcC6431cF69C6b535e2440E4;
+    address public usdcToken = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // ERC20 stable coin
+    address public usdtToken = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // ERC20 stable coin
+    address public wbtcToken = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599; // ERC20 token with 8 decimals
+    address public linkToken = 0x514910771AF9Ca656af840dff83E8264EcF986CA; // ERC677 Token
+    address public paxgToken = 0x45804880De22913dAFE09f4980848ECE6EcbAf78; // Fee-on-Transfer ERC20 token
+    address public mdtToken = 0xF97F0c51cE6c62A6AcC6431cF69C6b535e2440E4; // ERC20 with Fixed Max buy per tx
 
     address public usdcWhale = 0xA83DCc0B6aF233E677c0Ae8d8411E60eaE14d409;
     address public usdtWhale = 0x650296c3d2FF17b6aC810d47cf7c307e98041aE7;
@@ -407,6 +407,21 @@ contract ProphetRouterTest is Test {
     //     console2.log("alice ETH: after", address(alice).balance);
     // }
 
+    function test_transferOwnership() public {
+
+        //transferOwnership passes
+        address newOwner = makeAddr("newOwner");
+        vm.prank(prophetRouter.owner());
+        prophetRouter.transferOwnership(newOwner);
+        assertEq(prophetRouter.owner(), newOwner);
+
+        //transferOwnership fails due to unauthorized user calling
+        vm.prank(alice);
+        vm.expectRevert('PropherRouter: NOT OWNER');
+        prophetRouter.transferOwnership(newOwner);
+    }
+
+ 
     function test_FeeAfterSwap() public {
         vm.prank(alice);
         prophetRouter.ProphetBuy{value: 100 ether}(44000 * 10 ** 6, usdcToken, alice, block.timestamp, 400);
