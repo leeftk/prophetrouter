@@ -3,18 +3,19 @@ pragma solidity =0.6.6;
 pragma experimental ABIEncoderV2;
 
 import {Test, console2} from 'forge-std/Test.sol';
-import 'contracts/UniswapV2Router02.sol';
+import 'contracts/ProphetRouterV1.sol';
 import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
 
 contract ProphetRouterTest is Test {
     event ProphetFee(uint256 amount, address indexed to);
-    UniswapV2Router02 public prophetRouter;
+    ProphetRouterV1 public prophetRouter;
 
-    //User Addresses
+    // User Addresses
     address public alice = makeAddr('alice');
     address public bob = makeAddr('bob');
     address public owner = makeAddr('owner');
 
+    // Token Addresses
     address public usdcToken = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // ERC20 stable coin
     address public usdtToken = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // ERC20 stable coin
     address public wbtcToken = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599; // ERC20 token with 8 decimals
@@ -22,6 +23,7 @@ contract ProphetRouterTest is Test {
     address public paxgToken = 0x45804880De22913dAFE09f4980848ECE6EcbAf78; // Fee-on-Transfer ERC20 token
     address public mdtToken = 0xF97F0c51cE6c62A6AcC6431cF69C6b535e2440E4; // ERC20 with Fixed Max buy per tx
 
+    // Whale Addresses
     address public usdcWhale = 0xA83DCc0B6aF233E677c0Ae8d8411E60eaE14d409;
     address public usdtWhale = 0x650296c3d2FF17b6aC810d47cf7c307e98041aE7;
     address public wbtcWhale = 0x176c65F8806D10946BC6e0B8c6C31B5bEFF4f740;
@@ -32,11 +34,12 @@ contract ProphetRouterTest is Test {
         vm.createSelectFork('https://rpc.ankr.com/eth', 18797800);
 
         vm.prank(owner);
-        prophetRouter = new UniswapV2Router02();
+        prophetRouter = new ProphetRouterV1();
         vm.deal(alice, 1000 ether);
         vm.deal(bob, 1000 ether);
     }
 
+    // MAIN: Buy Functions
     function test_ProphetBuy() public {
         //## USDC token
         vm.prank(alice);
@@ -145,6 +148,7 @@ contract ProphetRouterTest is Test {
         prophetRouter.ProphetBuy{value: 200 ether}(40000 * 10 ** 6, address(0), alice, block.timestamp, 1000);
     }
 
+    // MAIN: Sell Functions
     function test_ProphetSell() public {
         vm.startPrank(usdcWhale);
         //## USDC token
@@ -278,6 +282,7 @@ contract ProphetRouterTest is Test {
         prophetRouter.ProphetSell(2000 * 10 ** 6, 1 ether, address(0), block.timestamp, 1000);
     }
 
+    // MAIN: SmartSell Functions
     function test_ProphetSmartSell() public {
         //## USDC token
         vm.startPrank(usdcWhale);
@@ -384,6 +389,7 @@ contract ProphetRouterTest is Test {
         vm.stopPrank();
     }
 
+    // MAIN: MaxBuy Functions
     function test_ProphetMaxBuy() public {
         //## MDT token
         vm.prank(alice);
@@ -392,7 +398,7 @@ contract ProphetRouterTest is Test {
         assertFalse(balanceOfMDT == 0);
 
         vm.rollFork(block.number + 10); // mine 10 blocks
-        
+
         vm.prank(bob);
         vm.deal(bob, 1 ether);
         prophetRouter.ProphetMaxBuy{value: 0.1 ether}(1 ether, mdtToken, bob, block.timestamp, 1000);
@@ -415,10 +421,10 @@ contract ProphetRouterTest is Test {
     //     console2.log("alice ETH: after", address(alice).balance);
     // }
 
+    // MAIN: Other Functions
     function test_transferOwnership() public {
-
         //transferOwnership passes
-        address newOwner = makeAddr("newOwner");
+        address newOwner = makeAddr('newOwner');
         vm.prank(prophetRouter.owner());
         prophetRouter.transferOwnership(newOwner);
         assertEq(prophetRouter.owner(), newOwner);
@@ -429,7 +435,6 @@ contract ProphetRouterTest is Test {
         prophetRouter.transferOwnership(newOwner);
     }
 
- 
     function test_FeeAfterSwap() public {
         vm.prank(alice);
         prophetRouter.ProphetBuy{value: 100 ether}(44000 * 10 ** 6, usdcToken, alice, block.timestamp, 400);
@@ -467,31 +472,4 @@ contract ProphetRouterTest is Test {
         uint256 balanceOfUsdc = IERC20(usdcToken).balanceOf(alice);
         assertFalse(balanceOfUsdc == 0);
     }
-
-    //  function testMyFunctionEmitsEventProphetSell() public {
-    //         vm.startPrank(wbtcWhale);
-
-    //         ethBalanceBefore = address(wbtcWhale).balance;
-    //         IERC20(wbtcToken).approve(address(prophetRouter), 6 * 10 ** 8);
-    //         vm.expectEmit(false, true, false, false);
-    //         emit ProphetFee(1000, alice);
-    //         prophetRouter.ProphetSell(6 * 10 ** 8, 100 ether, wbtcToken, block.timestamp, 1000);
-    //         assertGt(address(wbtcWhale).balance, ethBalanceBefore + (100 ether * 0.9));
-    //         vm.stopPrank();
-    // }
-
-    // function test_WithFeeOnTransfer() public {
-    //     vm.prank(alice);
-    //     // Using USDT on mainnet as its fee on transfer
-    //     prophetRouter.ProphetBuy{value: 100 ether}(1, usdtToken, block.timestamp, 400);
-    //     assertFalse(prophetRouter.totalFeeCollected() == 0);
-    //     assertEq(prophetRouter.totalFeeCollected(), 4 ether);
-    //     console2.log(address(owner).balance);
-    //     assertEq(address(owner).balance, 0);
-
-    //     vm.prank(owner);
-    //     uint totalFee = prophetRouter.totalFeeCollected();
-    //     prophetRouter.withdrawETH();
-    //     assertEq(address(owner).balance, totalFee);
-    // }
 }
