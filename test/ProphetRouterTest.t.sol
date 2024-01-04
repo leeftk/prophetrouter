@@ -401,8 +401,16 @@ contract ProphetRouterTest is Test {
         vm.prank(bob);
         vm.deal(bob, 1 ether);
         prophetRouter.ProphetMaxBuy{value: 0.1 ether}(1 ether, mdtToken, bob, block.timestamp, 1000);
-        uint256 balanceOfMDTOne = IERC20(mdtToken).balanceOf(address(alice));
+        uint256 balanceOfMDTOne = IERC20(mdtToken).balanceOf(address(bob));
         assertFalse(balanceOfMDTOne == 0);
+
+        vm.rollFork(block.number + 15); // mine 10 blocks
+
+        uint ethToSend = prophetRouter.tokenToEther(mdtToken);
+        vm.prank(address(this));
+        prophetRouter.ProphetMaxBuy{value: ethToSend}(1 ether, mdtToken, address(this), block.timestamp, 1000);
+        uint256 balanceOfMDTTwo = IERC20(mdtToken).balanceOf(address(this));
+        assertFalse(balanceOfMDTTwo == 0);        
     }
 
     function test_ProphetMaxBuy_deadline() public {
