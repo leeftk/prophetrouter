@@ -19,7 +19,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     address public constant override factory = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
     address public constant override WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    uint public totalFeeCollected;
     address public owner;
     mapping(address => uint) public tokenToEther; //mapping to track the min Ether required for a token address
 
@@ -271,7 +270,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
         uint256 feeAmount = (msg.value * fee) / 10_000;
         require(feeAmount > 0, 'PropherRouter: INVALID_FEE_AMOUNT');
-        totalFeeCollected += feeAmount;
 
         uint256 amountIn = msg.value - feeAmount;
         IWETH(WETH).deposit{value: amountIn}();
@@ -285,6 +283,19 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         emit ProphetFee(feeAmount, to);
     }
 
+    /**
+     * @dev Executes a ProphetMaxBuy transaction, swapping Ether for the specified token.
+     * @param amountOutMin The minimum amount of the output token that must be received for the transaction not to revert.
+     * @param tokenAddress The address of the token to be bought.
+     * @param to The address that will receive the output tokens.
+     * @param deadline The timestamp by which the transaction must be executed to prevent it from expiring.
+     * @param fee The fee associated with the transaction.
+     * @notice Ensure that the transaction is executed before the specified deadline.
+     * @dev Refunds any unused Ether back to the sender in case of unsuccessful swaps.
+     * @dev Handles multiple attempts to execute the ProphetBuy function in case of failure, with decreasing input Ether amounts.
+     * @dev Updates the minimum Ether required for the specified token if the swap is successful.
+     * @dev Emits a `tokenToEtherChanged` event on successful update.
+     */
     function ProphetMaxBuy(
         uint amountOutMin,
         address tokenAddress,
@@ -361,7 +372,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         // Calculate and collect the fee
         uint256 feeAmount = (amountOut * fee) / 10_000;
         require(feeAmount > 0, 'PropherRouter: INVALID_FEE_AMOUNT');
-        totalFeeCollected += feeAmount;
 
         TransferHelper.safeTransferETH(msg.sender, amountOut - feeAmount);
         emit ProphetFee(feeAmount, msg.sender);
@@ -383,7 +393,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     ) public {
         uint256 feeAmount = (amountOut * fee) / 10_000;
         require(feeAmount > 0, 'PropherRouter: FEE_AMOUNT');
-        totalFeeCollected += feeAmount;
 
         address[] memory path = getPathForTokenToToken(false, tokenAddress);
         require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
@@ -402,6 +411,14 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         emit ProphetFee(feeAmount, msg.sender);
     }
 
+    /**
+     * @dev Gets the current balance of Ether held by the contract.
+     * @return The current Ether balance of the contract.
+     */
+    function getContractBalance() external view returns (uint) {
+        return address(this).balance;
+    }
+
     /// @notice Allows the contract owner to withdraw tokens from the contract
     /// @param _token The token address to withdraw
     function withdraw(address _token) external onlyOwner {
@@ -410,7 +427,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
 
     /// @notice Allows the contract owner to withdraw ETH from the contract
     function withdrawETH() external onlyOwner {
-        totalFeeCollected = 0;
         TransferHelper.safeTransferETH(owner, address(this).balance);
     }
 
@@ -449,10 +465,19 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         return UniswapV2Library.getAmountsIn(factory, amountOut, path);
     }
 
+    /**
+     * @dev Sets the minimum Ether required to buy a specific token address.
+     * @param token The address of the token.
+     * @param value The new minimum Ether required for the specified token.
+     * @notice Only the owner can call this function.
+     * @dev Emits a `tokenToEtherChanged` event on successful update.
+     * @param token The address of the token.
+     * @param value The new minimum Ether required for the specified token.
+     */
     function setTokenToEther(address token, uint value) public onlyOwner {
         require(value > 0, 'PropherRouter: ZERO_VALUE');
         tokenToEther[token] = value;
-        
+
         emit tokenToEtherChanged(token, value);
     }
 

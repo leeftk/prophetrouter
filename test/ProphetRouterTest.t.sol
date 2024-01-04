@@ -433,7 +433,7 @@ contract ProphetRouterTest is Test {
     function test_FeeAfterSwap() public {
         vm.prank(alice);
         prophetRouter.ProphetBuy{value: 100 ether}(44000 * 10 ** 6, usdcToken, alice, block.timestamp, 400);
-        assertFalse(prophetRouter.totalFeeCollected() == 0);
+        assertFalse(prophetRouter.getContractBalance() == 0);
         assertEq(address(prophetRouter).balance, 4 ether);
 
         vm.prank(bob);
@@ -443,8 +443,8 @@ contract ProphetRouterTest is Test {
 
     function test_Withdrawal() public {
         test_FeeAfterSwap();
-        assertFalse(prophetRouter.totalFeeCollected() == 0);
-        uint totalFee = prophetRouter.totalFeeCollected();
+        assertFalse(prophetRouter.getContractBalance() == 0);
+        uint totalFee = prophetRouter.getContractBalance();
 
         vm.prank(owner);
         prophetRouter.withdrawETH();
