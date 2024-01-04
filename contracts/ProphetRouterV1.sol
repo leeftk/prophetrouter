@@ -131,9 +131,9 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         );
         uint balanceAfter = IERC20(path[path.length - 1]).balanceOf(address(this));
 
-        uint amountOut = balanceAfter - balanceBefore; //Amount of WETH after the swap
+        uint amountOut = SafeMath.sub(balanceAfter, balanceBefore); //Amount of WETH after the swap
         IWETH(WETH).withdraw(amountOut);
-        TransferHelper.safeTransferETH(to, amountOut - feeAmount);
+        TransferHelper.safeTransferETH(to, SafeMath.sub(amountOut, feeAmount));
     }
 
     /// @notice Executes a buy operation with a fee, swapping ETH for tokens
@@ -154,7 +154,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint256 feeAmount = (msg.value * fee) / 10_000;
         require(feeAmount > 0, 'PropherRouter: INVALID_FEE_AMOUNT');
 
-        uint256 amountIn = msg.value - feeAmount;
+        uint256 amountIn = SafeMath.sub(msg.value, feeAmount);
         IWETH(WETH).deposit{value: amountIn}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn));
         uint balanceBefore = IERC20(tokenAddress).balanceOf(to);
@@ -197,20 +197,19 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         if (tokenToEther[tokenAddress] == 0) {
             uint maxAttempts = 10;
             while (isSwapComplete == false) {
-                maxAttempts--;
+                maxAttempts = maxAttempts - 1;
                 if (maxAttempts == 0) {
-                    TransferHelper.safeTransferETH(to, amountIn); //@note-> adding this to refund the msg.value back to user
+                    TransferHelper.safeTransferETH(to, amountIn); // adding this to refund the msg.value back to user in case of maxAttempts are over
                     break;
-                } //@note -> adding this because, if the ProphetBuy for other reasons other than buylimit, it may end up in catch block and result in infinite loop. Need to talk to @33audits
-                //@note -> fee calculation already handled as part of ProphetBuy()
+                }
+                //fee calculation already handled as part of ProphetBuy()
                 try this.ProphetBuy{value: tempAmountIn}(amountOutMin, tokenAddress, to, deadline, fee) {
                     isSwapComplete = true;
                     tokenToEther[tokenAddress] = tempAmountIn;
-                    uint amountOutETH = amountIn - tempAmountIn;
+                    uint amountOutETH = SafeMath.sub(amountIn, tempAmountIn);
                     if (amountOutETH > 0) TransferHelper.safeTransferETH(to, amountOutETH);
                     break;
                 } catch {
-                    //@note -> Example revert for token max buy("Buy transfer amount exceeds the max buy")
                     tempAmountIn = (tempAmountIn * 9000) / 10000;
                     continue;
                 }
@@ -257,7 +256,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint256 feeAmount = (amountOut * fee) / 10_000;
         require(feeAmount > 0, 'PropherRouter: INVALID_FEE_AMOUNT');
 
-        TransferHelper.safeTransferETH(msg.sender, amountOut - feeAmount);
+        TransferHelper.safeTransferETH(msg.sender, SafeMath.sub(amountOut, feeAmount)); //amountOut - feeAmount
         emit ProphetFee(feeAmount, msg.sender);
     }
 

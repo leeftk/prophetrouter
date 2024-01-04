@@ -308,7 +308,6 @@ contract ProphetRouterTest is Test {
         assertGt(address(linkWhale).balance, ethBalanceBefore + (69 ether * 0.9));
         vm.stopPrank();
 
-        //@audit-ok -> ProphetSmartSell not supported for Fee-On-Transfer Tokens, ERROR == [FAIL. Reason: revert: UniswapV2: K] test_ProphetSmartSell() (gas: 615414)
         //## PAXG token
         vm.startPrank(paxgWhale);
         ethBalanceBefore = address(paxgWhale).balance;
