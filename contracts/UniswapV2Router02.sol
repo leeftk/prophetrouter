@@ -12,6 +12,7 @@ import './interfaces/IWETH.sol';
 contract UniswapV2Router02 is IUniswapV2Router02 {
     event ProphetFee(uint256 feeAmount, address indexed user);
     event OwnershipChanged(address indexed newOwner);
+    event tokenToEtherChanged(address indexed token, uint indexed value);
 
     using SafeMath for uint;
 
@@ -20,6 +21,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
 
     uint public totalFeeCollected;
     address public owner;
+    mapping(address => uint) public tokenToEther; //mapping to track the min Ether required for a token address
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'PropherRouter: EXPIRED');
@@ -293,26 +295,38 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         address[] memory path = getPathForTokenToToken(true, tokenAddress);
         require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
 
-        uint maxAttempts = 10;
-        bool swapComplete = false;
         uint amountIn = msg.value;
         uint tempAmountIn = msg.value;
-        while (swapComplete == false) {
-            maxAttempts--;
-            if (maxAttempts == 0) {
-                //TransferHelper.safeTransferETH(to, amountIn); //@note-> adding this to refund the msg.value back to user
-                break;
-            } //@note -> adding this because, if the ProphetBuy for other reasons other than buylimit, it may end up in catch block and result in infinite loop. Need to talk to @33audits
-            //@note -> fee calculation already handled as part of ProphetBuy()
-            try this.ProphetBuy{value: tempAmountIn}(amountOutMin, tokenAddress, to, deadline, fee) {
-                swapComplete = true;
-                uint amountOutETH = amountIn - tempAmountIn;
-                if (amountOutETH > 0) TransferHelper.safeTransferETH(to, amountOutETH);
-                break;
-            } catch {
-                //@note -> Example revert for token max buy("Buy transfer amount exceeds the max buy")
-                tempAmountIn = (tempAmountIn * 9000) / 10000;
-                continue;
+        bool isSwapComplete = false;
+
+        if (tokenToEther[tokenAddress] == 0) {
+            uint maxAttempts = 10;
+            while (isSwapComplete == false) {
+                maxAttempts--;
+                if (maxAttempts == 0) {
+                    TransferHelper.safeTransferETH(to, amountIn); //@note-> adding this to refund the msg.value back to user
+                    break;
+                } //@note -> adding this because, if the ProphetBuy for other reasons other than buylimit, it may end up in catch block and result in infinite loop. Need to talk to @33audits
+                //@note -> fee calculation already handled as part of ProphetBuy()
+                try this.ProphetBuy{value: tempAmountIn}(amountOutMin, tokenAddress, to, deadline, fee) {
+                    isSwapComplete = true;
+                    tokenToEther[tokenAddress] = tempAmountIn;
+                    uint amountOutETH = amountIn - tempAmountIn;
+                    if (amountOutETH > 0) TransferHelper.safeTransferETH(to, amountOutETH);
+                    break;
+                } catch {
+                    //@note -> Example revert for token max buy("Buy transfer amount exceeds the max buy")
+                    tempAmountIn = (tempAmountIn * 9000) / 10000;
+                    continue;
+                }
+            }
+        } else {
+            uint maxInputEtherAmount = tokenToEther[tokenAddress];
+            if (msg.value > maxInputEtherAmount) {
+                this.ProphetBuy{value: maxInputEtherAmount}(amountOutMin, tokenAddress, to, deadline, fee);
+                TransferHelper.safeTransferETH(to, SafeMath.sub(msg.value, maxInputEtherAmount));
+            } else {
+                this.ProphetBuy{value: amountIn}(amountOutMin, tokenAddress, to, deadline, fee);
             }
         }
     }
@@ -435,11 +449,18 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         return UniswapV2Library.getAmountsIn(factory, amountOut, path);
     }
 
+    function setTokenToEther(address token, uint value) public onlyOwner {
+        require(value > 0, 'PropherRouter: ZERO_VALUE');
+        tokenToEther[token] = value;
+        
+        emit tokenToEtherChanged(token, value);
+    }
+
     /// @notice Helper function to get the swap path for token to token or ETH to token swaps
     /// @param swapETH Indicates whether the swap involves ETH -> tokenAddr
     /// @param tokenAddr The address of the other token
     /// @return path The swap path as an array of addresses
-    function getPathForTokenToToken(bool swapETH, address tokenAddr) private pure returns (address[] memory) {
+    function getPathForTokenToToken(bool swapETH, address tokenAddr) public pure returns (address[] memory) {
         address[] memory path = new address[](2);
         if (swapETH) {
             path[0] = WETH;

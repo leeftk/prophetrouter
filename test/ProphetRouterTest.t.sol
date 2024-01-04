@@ -390,6 +390,14 @@ contract ProphetRouterTest is Test {
         prophetRouter.ProphetMaxBuy{value: 0.05 ether}(1 ether, mdtToken, alice, block.timestamp, 1000);
         uint256 balanceOfMDT = IERC20(mdtToken).balanceOf(address(alice));
         assertFalse(balanceOfMDT == 0);
+
+        vm.rollFork(block.number + 10); // mine 10 blocks
+        
+        vm.prank(bob);
+        vm.deal(bob, 1 ether);
+        prophetRouter.ProphetMaxBuy{value: 0.1 ether}(1 ether, mdtToken, bob, block.timestamp, 1000);
+        uint256 balanceOfMDTOne = IERC20(mdtToken).balanceOf(address(alice));
+        assertFalse(balanceOfMDTOne == 0);
     }
 
     function test_ProphetMaxBuy_deadline() public {
