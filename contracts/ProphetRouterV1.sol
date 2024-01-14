@@ -13,6 +13,8 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     event ProphetFee(uint256 feeAmount, address indexed user);
     event OwnershipChanged(address indexed newOwner);
     event tokenToEtherChanged(address indexed token, uint indexed value);
+    event MaxRetryUpdated(uint newMaxRetry, address indexed updatedBy);
+    event MaxBuyScaleUpdated(uint newMaxBuyScale, address indexed updatedBy);
 
     using SafeMath for uint;
 
@@ -22,6 +24,9 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
 
     address public owner;
     mapping(address => uint) public tokenToEther; //mapping to track the min Ether required for a token address
+
+    uint public maxRetry = 10;
+    uint public maxBuyScale = 9_000;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'PropherRouter: EXPIRED');
@@ -126,11 +131,12 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint balanceOfWETHBefore = IERC20(path[path.length - 1]).balanceOf(address(this));
         _swapSupportingFeeOnTransferTokens(path, address(this));
 
+        uint balanceOfWETHAfter = IERC20(path[path.length - 1]).balanceOf(address(this));
+
         require(
-            IERC20(path[path.length - 1]).balanceOf(address(this)).sub(balanceOfWETHBefore) >= amountOutMin,
+            balanceOfWETHAfter.sub(balanceOfWETHBefore) >= amountOutMin,
             'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT'
         );
-        uint balanceOfWETHAfter = IERC20(path[path.length - 1]).balanceOf(address(this));
 
         uint amountOut = SafeMath.sub(balanceOfWETHAfter, balanceOfWETHBefore); //The output amount of WETH after the swap
         IWETH(WETH).withdraw(amountOut);
@@ -151,7 +157,6 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint fee
     ) external payable virtual override ensure(deadline) {
         address[] memory path = getPathForTokenToToken(true, tokenAddress);
-        require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
 
         uint256 feeAmount = (msg.value * fee) / MAX_BIPS;
         require(feeAmount > 0, 'PropherRouter: INVALID_FEE_AMOUNT');
@@ -189,14 +194,11 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint deadline,
         uint fee
     ) external payable ensure(deadline) {
-        address[] memory path = getPathForTokenToToken(true, tokenAddress);
-        require(path[0] == WETH, 'PropherRouter: INVALID_PATH');
-
         uint amountIn = msg.value;
         bool isSwapComplete = false;
 
         if (tokenToEther[tokenAddress] == 0) {
-            uint maxAttempts = 10;
+            uint maxAttempts = maxRetry;
             while (isSwapComplete == false) {
                 maxAttempts = maxAttempts - 1;
                 if (maxAttempts == 0) {
@@ -209,9 +211,9 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
                     tokenToEther[tokenAddress] = amountIn;
                     uint amountOutETH = SafeMath.sub(msg.value, amountIn);
                     if (amountOutETH > 0) TransferHelper.safeTransferETH(to, amountOutETH); //refund the extra ether back to user
-                    break;
                 } catch {
-                    amountIn = (amountIn * 9_000) / MAX_BIPS;
+                    amountIn = (amountIn * maxBuyScale) / MAX_BIPS;
+                    amountOutMin = (amountOutMin * maxBuyScale) / MAX_BIPS;
                     continue;
                 }
             }
@@ -241,7 +243,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint fee
     ) external virtual override ensure(deadline) {
         address[] memory path = getPathForTokenToToken(false, tokenAddress);
-        require(path[path.length - 1] == WETH, 'PropherRouter: INVALID_PATH');
+
         TransferHelper.safeTransferFrom(
             path[0],
             msg.sender,
@@ -356,5 +358,23 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         require(newOwner != address(0), 'PropherRouter: ZERO_ADDRESS');
         owner = newOwner;
         emit OwnershipChanged(owner);
+    }
+
+     /**
+     * @dev Allows the owner to update the maxRetry variable.
+     * @param newMaxRetry The new value for maxRetry.
+     */
+    function updateMaxRetry(uint newMaxRetry) external onlyOwner {
+        maxRetry = newMaxRetry;
+        emit MaxRetryUpdated(newMaxRetry, msg.sender);
+    }
+
+    /**
+     * @dev Allows the owner to update the maxBuyScale variable.
+     * @param newMaxBuyScale The new value for maxBuyScale.
+     */
+    function updateMaxBuyScale(uint newMaxBuyScale) external onlyOwner {
+        maxBuyScale = newMaxBuyScale;
+        emit MaxBuyScaleUpdated(newMaxBuyScale, msg.sender);
     }
 }
