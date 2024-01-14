@@ -121,7 +121,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         address to,
         uint deadline,
         uint feeAmount
-    ) public ensure(deadline) {
+    ) private ensure(deadline) {
         TransferHelper.safeTransferFrom(
             path[0],
             msg.sender,
@@ -133,12 +133,10 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
 
         uint balanceOfWETHAfter = IERC20(path[path.length - 1]).balanceOf(address(this));
 
-        require(
-            balanceOfWETHAfter.sub(balanceOfWETHBefore) >= amountOutMin,
-            'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT'
-        );
-
         uint amountOut = SafeMath.sub(balanceOfWETHAfter, balanceOfWETHBefore); //The output amount of WETH after the swap
+
+        require(amountOut >= amountOutMin, 'PropherRouter: INSUFFICIENT_OUTPUT_AMOUNT');
+
         IWETH(WETH).withdraw(amountOut);
         TransferHelper.safeTransferETH(to, SafeMath.sub(amountOut, feeAmount));
     }
@@ -217,12 +215,13 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
                     continue;
                 }
             }
-        } else { // in case the tokenToEther for the current token is updated
+        } else {
+            // in case the tokenToEther for the current token is updated
             uint maxInputEtherAmount = tokenToEther[tokenAddress];
             if (msg.value > maxInputEtherAmount) {
                 this.ProphetBuy{value: maxInputEtherAmount}(amountOutMin, tokenAddress, to, deadline, fee);
                 TransferHelper.safeTransferETH(to, SafeMath.sub(msg.value, maxInputEtherAmount));
-            } else if(msg.value <= maxInputEtherAmount) {
+            } else if (msg.value <= maxInputEtherAmount) {
                 this.ProphetBuy{value: msg.value}(amountOutMin, tokenAddress, to, deadline, fee);
             }
         }
@@ -360,7 +359,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         emit OwnershipChanged(owner);
     }
 
-     /**
+    /**
      * @dev Allows the owner to update the maxRetry variable.
      * @param newMaxRetry The new value for maxRetry.
      */
