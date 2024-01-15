@@ -15,6 +15,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     event tokenToEtherChanged(address indexed token, uint indexed value);
     event MaxRetryUpdated(uint newMaxRetry, address indexed updatedBy);
     event MaxBuyScaleUpdated(uint newMaxBuyScale, address indexed updatedBy);
+    event MaxBuyEtherLimitUpdated(uint newMaxBuyEtherLimit, address indexed updatedBy);
 
     using SafeMath for uint;
 
@@ -26,7 +27,8 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     mapping(address => uint) public tokenToEther; //mapping to track the min Ether required for a token address
 
     uint public maxRetry = 10;
-    uint public maxBuyScale = 9_000;
+    uint public maxBuyScale = 6_900;
+    uint public maxBuyEtherLimit = 0.5 ether; // should be set by owners during deployment
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'PropherRouter: EXPIRED');
@@ -192,6 +194,8 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint deadline,
         uint fee
     ) external payable ensure(deadline) {
+        require(msg.value <= maxBuyEtherLimit, 'PropherRouter: EXCEEDED_ETHER_LIMIT');
+        
         uint amountIn = msg.value;
         bool isSwapComplete = false;
 
@@ -376,4 +380,14 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         maxBuyScale = newMaxBuyScale;
         emit MaxBuyScaleUpdated(newMaxBuyScale, msg.sender);
     }
+
+    /**
+     * @dev Sets the maximum buy ether limit.
+     * @param newLimit The new maximum buy ether limit to be set.
+     */
+    function setMaxBuyEtherLimit(uint newLimit) external onlyOwner {
+        maxBuyEtherLimit = newLimit;
+        emit MaxBuyEtherLimitUpdated(newLimit, msg.sender);
+    }
+
 }
