@@ -16,6 +16,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     event MaxRetryUpdated(uint newMaxRetry, address indexed updatedBy);
     event MaxBuyScaleUpdated(uint newMaxBuyScale, address indexed updatedBy);
     event MaxBuyEtherLimitUpdated(uint newMaxBuyEtherLimit, address indexed updatedBy);
+    event ProphetFeeUpdated(uint newfee, address indexed updatedBy);
 
     using SafeMath for uint;
 
@@ -29,6 +30,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     uint public maxRetry = 10;
     uint public maxBuyScale = 6_900;
     uint public maxBuyEtherLimit = 0.5 ether; // should be set by owners during deployment
+    uint public fee = 100; // set the fee to 1% (default) - BIPS standard
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'PropherRouter: EXPIRED');
@@ -113,8 +115,6 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
      * @param path An array of token addresses representing the swap path.
      * @param to The address to receive the swapped ETH.
      * @param deadline The deadline by which the swap must be executed.
-     * @param feeAmount The fee amount to subtract from the total ETH before transferring to the recipient.
-     *
      */
     function swapTokensSupportingFeeOnTransferTokensForExactETH(
         uint amountIn,
@@ -148,14 +148,19 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     /// @param amountOutMin The minimum amount of output tokens to receive
     /// @param tokenAddress The address of the output token
     /// @param deadline The time by which the transaction must be confirmed
-    /// @param fee The fee percentage for the operation
     function ProphetBuy(
         uint amountOutMin,
         address tokenAddress,
         address to,
-        uint deadline,
-        uint fee
-    ) external payable virtual override ensure(deadline) {
+        uint deadline
+    )
+        external
+        payable
+        virtual
+        override
+        //uint fee
+        ensure(deadline)
+    {
         address[] memory path = getPathForTokenToToken(true, tokenAddress);
 
         uint256 feeAmount = (msg.value * fee) / MAX_BIPS;
@@ -180,7 +185,6 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
      * @param tokenAddress The address of the token to be bought.
      * @param to The address that will receive the output tokens.
      * @param deadline The timestamp by which the transaction must be executed to prevent it from expiring.
-     * @param fee The fee associated with the transaction.
      * @notice Ensure that the transaction is executed before the specified deadline.
      * @dev Refunds any unused Ether back to the sender in case of unsuccessful swaps.
      * @dev Handles multiple attempts to execute the ProphetBuy function in case of failure, with decreasing input Ether amounts.
@@ -191,11 +195,15 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         uint amountOutMin,
         address tokenAddress,
         address to,
-        uint deadline,
-        uint fee
-    ) external payable ensure(deadline) {
+        uint deadline
+    )
+        external
+        payable
+        //uint fee
+        ensure(deadline)
+    {
         require(msg.value <= maxBuyEtherLimit, 'PropherRouter: EXCEEDED_ETHER_LIMIT');
-        
+
         uint amountIn = msg.value;
         bool isSwapComplete = false;
 
@@ -208,7 +216,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
                     break;
                 }
                 //fee calculation already handled as part of ProphetBuy()
-                try this.ProphetBuy{value: amountIn}(amountOutMin, tokenAddress, to, deadline, fee) {
+                try this.ProphetBuy{value: amountIn}(amountOutMin, tokenAddress, to, deadline) {
                     isSwapComplete = true;
                     tokenToEther[tokenAddress] = amountIn;
                     uint amountOutETH = SafeMath.sub(msg.value, amountIn);
@@ -223,10 +231,10 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
             // in case the tokenToEther for the current token is updated
             uint maxInputEtherAmount = tokenToEther[tokenAddress];
             if (msg.value > maxInputEtherAmount) {
-                this.ProphetBuy{value: maxInputEtherAmount}(amountOutMin, tokenAddress, to, deadline, fee);
+                this.ProphetBuy{value: maxInputEtherAmount}(amountOutMin, tokenAddress, to, deadline);
                 TransferHelper.safeTransferETH(to, SafeMath.sub(msg.value, maxInputEtherAmount));
             } else if (msg.value <= maxInputEtherAmount) {
-                this.ProphetBuy{value: msg.value}(amountOutMin, tokenAddress, to, deadline, fee);
+                this.ProphetBuy{value: msg.value}(amountOutMin, tokenAddress, to, deadline);
             }
         }
     }
@@ -237,14 +245,18 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     /// @param amountOutMin The minimum amount of ETH to receive
     /// @param tokenAddress The address of the input token
     /// @param deadline The time by which the transaction must be confirmed
-    /// @param fee The fee percentage for the operation
     function ProphetSell(
         uint amountIn,
         uint amountOutMin,
         address tokenAddress,
-        uint deadline,
-        uint fee
-    ) external virtual override ensure(deadline) {
+        uint deadline
+    )
+        external
+        virtual
+        override
+        //uint fee
+        ensure(deadline)
+    {
         address[] memory path = getPathForTokenToToken(false, tokenAddress);
 
         TransferHelper.safeTransferFrom(
@@ -272,13 +284,11 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     /// @param amountInMax The maximum amount of input tokens to sell
     /// @param tokenAddress The address of the token to sell
     /// @param deadline The time by which the transaction must be confirmed
-    /// @param fee The fee percentage for the operation
     function ProphetSmartSell(
         uint amountOut,
         uint amountInMax,
         address tokenAddress,
-        uint256 deadline,
-        uint fee
+        uint256 deadline //uint fee
     ) public {
         uint256 feeAmount = (amountOut * fee) / MAX_BIPS;
         require(feeAmount > 0, 'PropherRouter: FEE_AMOUNT');
@@ -390,4 +400,13 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         emit MaxBuyEtherLimitUpdated(newLimit, msg.sender);
     }
 
+    /**
+     * @dev Sets the fee percentage. Max fee allowed is 10%
+     * @param _newFee The new fee to be set.
+     */
+    function setFee(uint _newFee) external onlyOwner {
+        require(_newFee <= 1000, 'PropherRouter: INVALID_FEE_AMOUNT');
+        fee = _newFee;
+        emit ProphetFeeUpdated(_newFee, msg.sender);
+    }
 }

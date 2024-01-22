@@ -14,11 +14,9 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     function ProphetBuy(
         // swapExactETHForTokensSupportingFeeOnTransferTokens
         uint amountOutMin,
-        //address[] calldata path,
         address tokenAddress,
         address to,
-        uint deadline,
-        uint fee
+        uint deadline
     ) external payable; //@audit-info - ProphetBuy
 
     function ProphetSell(
@@ -26,9 +24,6 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountIn,
         uint amountOutMin,
         address tokenAddress,
-        //address[] calldata path,
-        //address to,
-        uint deadline,
-        uint fee
+        uint deadline
     ) external; //@audit-info - ProphetSell
 }
