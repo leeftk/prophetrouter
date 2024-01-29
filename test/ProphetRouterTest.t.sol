@@ -426,6 +426,8 @@ contract ProphetRouterTest is Test {
         address newOwner = makeAddr('newOwner');
         vm.prank(prophetRouter.owner());
         prophetRouter.transferOwnership(newOwner);
+        vm.prank(newOwner);
+        prophetRouter.acceptOwnership();
         assertEq(prophetRouter.owner(), newOwner);
 
         //transferOwnership fails due to unauthorized user calling

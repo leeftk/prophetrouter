@@ -12,6 +12,7 @@ import './interfaces/IWETH.sol';
 contract ProphetRouterV1 is IUniswapV2Router02 {
     event ProphetFee(uint256 feeAmount, address indexed user);
     event OwnershipChanged(address indexed newOwner);
+    event OwnershipTransferStarted(address indexed Owner, address indexed newOwner);
     event tokenToEtherChanged(address indexed token, uint indexed value);
     event MaxRetryUpdated(uint newMaxRetry, address indexed updatedBy);
     event MaxBuyScaleUpdated(uint newMaxBuyScale, address indexed updatedBy);
@@ -25,6 +26,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
     uint public constant MAX_BIPS = 10_000;
 
     address public owner;
+    address private _pendingOwner;
     mapping(address => uint) public tokenToEther; //mapping to track the min Ether required for a token address
 
     uint public maxRetry = 10;
@@ -210,7 +212,6 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         if (tokenToEther[tokenAddress] == 0) {
             uint maxAttempts = maxRetry;
             while (isSwapComplete == false) {
-                maxAttempts = maxAttempts - 1;
                 if (maxAttempts == 0) {
                     TransferHelper.safeTransferETH(to, msg.value); // adding this to refund the msg.value back to user in case of maxAttempts are over
                     break;
@@ -226,6 +227,7 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
                     amountOutMin = (amountOutMin * maxBuyScale) / MAX_BIPS;
                     continue;
                 }
+                maxAttempts = maxAttempts - 1;
             }
         } else {
             // in case the tokenToEther for the current token is updated
@@ -369,7 +371,16 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
      */
     function transferOwnership(address newOwner) public onlyOwner {
         require(newOwner != address(0), 'PropherRouter: ZERO_ADDRESS');
-        owner = newOwner;
+        _pendingOwner = newOwner;
+        emit OwnershipTransferStarted(owner, newOwner);
+    }
+
+    /**
+     * @dev The new owner accepts the ownership transfer.
+     */
+    function acceptOwnership() public virtual {
+        require(pendingOwner() == msg.sender, 'PropherRouter: UNAUTHORIZED_CALLER');
+        owner = pendingOwner();
         emit OwnershipChanged(owner);
     }
 
@@ -408,5 +419,12 @@ contract ProphetRouterV1 is IUniswapV2Router02 {
         require(_newFee <= 1000, 'PropherRouter: INVALID_FEE_AMOUNT');
         fee = _newFee;
         emit ProphetFeeUpdated(_newFee, msg.sender);
+    }
+
+    /**
+     * @dev Returns the address of the pending owner.
+     */
+    function pendingOwner() public view virtual returns (address) {
+        return _pendingOwner;
     }
 }
