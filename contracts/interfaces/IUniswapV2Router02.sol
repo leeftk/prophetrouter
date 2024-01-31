@@ -16,7 +16,8 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountOutMin,
         address tokenAddress,
         address to,
-        uint deadline
+        uint deadline,
+        uint fee
     ) external payable; //@audit-info - ProphetBuy
 
     function ProphetSell(
@@ -24,6 +25,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountIn,
         uint amountOutMin,
         address tokenAddress,
-        uint deadline
+        uint deadline,
+        uint fee
     ) external; //@audit-info - ProphetSell
 }
